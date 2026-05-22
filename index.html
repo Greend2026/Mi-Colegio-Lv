@@ -272,7 +272,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -281,10 +281,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -292,8 +295,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -1016,7 +1034,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -1024,14 +1042,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -1765,7 +1783,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -1774,10 +1792,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -1785,8 +1806,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -2509,7 +2545,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -2517,14 +2553,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -3258,7 +3294,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -3267,10 +3303,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -3278,8 +3317,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -4002,7 +4056,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -4010,14 +4064,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -4751,7 +4805,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -4760,10 +4814,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -4771,8 +4828,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -5495,7 +5567,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -5503,14 +5575,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -6244,7 +6316,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -6253,10 +6325,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -6264,8 +6339,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -6988,7 +7078,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -6996,14 +7086,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -7737,7 +7827,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -7746,10 +7836,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -7757,8 +7850,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -8481,7 +8589,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -8489,14 +8597,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -9230,7 +9338,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -9239,10 +9347,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -9250,8 +9361,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -9974,7 +10100,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -9982,14 +10108,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -12024,7 +12150,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -12033,10 +12159,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -12044,8 +12173,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -12768,7 +12912,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -12776,14 +12920,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -13254,7 +13398,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
 </script>
 
     <script>
-        const URL_API = "https://script.google.com/macros/s/AKfycby0sPWHKTsGkJVpqpC2AUxjYGHW1LX3UaaCRsc_AE1TObHFx-UqbW-23jMq2UUUymEo/exec";
+        const URL_API = "https://script.google.com/macros/s/AKfycbzfBr8xjypoJKf9hyTzEH9uGuE0hxcQnQc37wxeWAVlreuiWEPMqWOspSDRKY2y99Nz/exec";
 
         let datosMemoria = {}; let editandoID = null; let reporteGlobalData = {}; let rolActual = ''; let usuarioDniActual = '';
         let targetPDFDownload = '';
@@ -13468,6 +13612,18 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 }
 
                 btn.innerHTML = 'Ingresar'; btn.disabled = false;
+
+                // Cargar Logo Global al iniciar sesión para persistencia entre dispositivos
+                try {
+                    let rLogo = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rLogo.exito && rLogo.config && rLogo.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rLogo.config.LOGO_URL });
+                        if(rB64.exito) {
+                            localStorage.setItem('logoInstBase64', rB64.base64);
+                            aplicarLogoEnInterfaz();
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo en inicio:", e); }
 
                 document.getElementById('login-section').classList.add('d-none'); document.getElementById('dashboard-section').classList.remove('d-none'); document.getElementById('user-name-display').innerText = r.mensaje;
 
@@ -15358,7 +15514,7 @@ if(idVista === 'v-reporte') {
         }
 
 
-        const toBase64 = file => new Promise((resolve, reject) => {
+        const toBase64 = (file, maxWidth = 500, quality = 0.7) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -15366,13 +15522,15 @@ if(idVista === 'v-reporte') {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 500; // Reducimos el tamaño para que Google Apps Script no colapse
-                    const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // Preservar transparencia
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6)); // Comprimir a JPEG al 60%
+                    
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
@@ -16044,7 +16202,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!input.files || input.files.length === 0) return alert("Seleccione una imagen.");
             let file = input.files[0];
             let msg = document.getElementById('msg-logo');
-            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo a Fotos_Carnet...</span>';
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Subiendo logo al servidor...</span>';
             
             try {
                 let base64 = await toBase64(file);
@@ -16053,10 +16211,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     datos: { base64: base64, mimeType: file.type, nombre: "LOGO_INSTITUCIONAL_2026", tipoCarpeta: "Fotos_Carnet" } 
                 });
                 if(rArch.exito) {
+                    // Guardar URL en el servidor para que sea global
+                    await fetchAPI({ accion: 'guardarConfiguracion', clave: 'LOGO_URL', valor: rArch.url });
+                    
                     localStorage.setItem('logoInstBase64', base64);
                     localStorage.setItem('logoInstTipo', file.type === 'image/png' ? 'PNG' : 'JPEG');
                     aplicarLogoEnInterfaz();
-                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente.</span>';
+                    msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Logo guardado exitosamente en todos los dispositivos.</span>';
                 } else {
                     msg.innerHTML = '<span class="text-danger">Error al subir: ' + rArch.mensaje + '</span>';
                 }
@@ -16064,8 +16225,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        function aplicarLogoEnInterfaz() {
+        async function aplicarLogoEnInterfaz() {
             let b64 = localStorage.getItem('logoInstBase64');
+            
+            // Si no hay logo local, intentar traer del servidor para persistencia global
+            if(!b64) {
+                try {
+                    let rConf = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                    if(rConf.exito && rConf.config && rConf.config.LOGO_URL) {
+                        let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rConf.config.LOGO_URL });
+                        if(rB64.exito) {
+                            b64 = rB64.base64;
+                            localStorage.setItem('logoInstBase64', b64);
+                        }
+                    }
+                } catch(e) { console.error("Error al cargar logo global:", e); }
+            }
+
             if(b64) {
                 let link = document.querySelector("link[rel~='icon']");
                 if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -16788,7 +16964,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         
-        const toBase64Evidencia = file => new Promise((resolve, reject) => {
+        const toBase64Evidencia = (file, maxWidth = 1000, quality = 0.8) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -16796,14 +16972,14 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000; // Calidad aceptable para leer texto en certificados
-                    let scaleSize = 1;
-                    if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * (canvas.width / img.width);
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% calidad JPEG
+                    let mime = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+                    resolve(canvas.toDataURL(mime, quality));
                 };
                 img.onerror = error => reject(error);
             };
