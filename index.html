@@ -13596,26 +13596,43 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 rolActual = tipo; 
                 usuarioDniActual = r.usuarioDni || dni.trim().padStart(8, '0'); // Usar DNI normalizado del servidor
 
-                // Pre-cargar datos principales según el rol para evitar cargas posteriores
-                let hojasACargar = [];
-                if(tipo === 'Administrador') hojasACargar = ['Administradores', 'Docentes', 'Auxiliares', 'Areas', 'Horarios', 'Horario_Docentes', 'Feriados', 'Estudiantes', 'Registro_Asistencia', 'Asistencia_Auxiliar', 'Asistencia_Docentes', 'Incidencias', 'Permisos'];
-                else if(tipo === 'Docente') hojasACargar = ['Estudiantes', 'Asistencia_Docentes', 'Incidencias', 'Areas', 'Horarios', 'Registro_Asistencia', 'Permisos', 'Docentes'];
-                else if (tipo === 'Auxiliar') hojasACargar = ['Estudiantes', 'Asistencia_Auxiliar', 'Incidencias', 'Areas', 'Horarios', 'Registro_Asistencia', 'Permisos', 'Auxiliares'];
+                // Optimización: Solo cargar lo estrictamente necesario para entrar (Lazy Loading)
+                // Esto elimina la demora de 5 segundos al iniciar sesión
+                let hojasCriticas = [];
+                if(tipo === 'Administrador') hojasCriticas = ['Estudiantes']; 
+                else if(tipo === 'Docente') hojasCriticas = ['Docentes', 'Estudiantes']; 
+                else if (tipo === 'Auxiliar') hojasCriticas = ['Auxiliares', 'Estudiantes']; 
 
-                // Descarga paralela rápida
-                let promesas = hojasACargar.map(h => fetchAPI({ accion: 'obtenerDatos', hoja: h }));
-                let resultados = await Promise.all(promesas);
-
-                for(let i=0; i<hojasACargar.length; i++) {
-                    if(resultados[i].exito) datosMemoria[hojasACargar[i]] = resultados[i].datos || [];
-                    else datosMemoria[hojasACargar[i]] = [];
+                let resultadosCriticos = await Promise.all(hojasCriticas.map(h => fetchAPI({ accion: 'obtenerDatos', hoja: h })));
+                for(let i=0; i<hojasCriticas.length; i++) {
+                    if(resultadosCriticos[i].exito) datosMemoria[hojasCriticas[i]] = resultadosCriticos[i].datos || [];
+                    else datosMemoria[hojasCriticas[i]] = [];
                 }
 
-                btn.innerHTML = 'Ingresar'; btn.disabled = false;
+                // --- TRANSICIÓN INMEDIATA AL PANEL ---
+                // Ocultamos el login y mostramos el dashboard YA mismo
+                document.getElementById('login-section').classList.add('d-none'); 
+                document.getElementById('dashboard-section').classList.remove('d-none'); 
+                document.getElementById('user-name-display').innerText = r.mensaje;
 
-                // Cargar Logo Global al iniciar sesión para persistencia entre dispositivos
-                try {
-                    let rLogo = await fetchAPI({ accion: 'obtenerConfiguracion' });
+                // Cargar el resto en segundo plano (Background Loading) para no bloquear al usuario
+                let hojasBackground = [];
+                if(tipo === 'Administrador') hojasBackground = ['Administradores', 'Docentes', 'Auxiliares', 'Areas', 'Horarios', 'Horario_Docentes', 'Feriados', 'Registro_Asistencia', 'Asistencia_Auxiliar', 'Asistencia_Docentes', 'Incidencias', 'Permisos'];
+                else if(tipo === 'Docente') hojasBackground = ['Asistencia_Docentes', 'Incidencias', 'Areas', 'Horarios', 'Registro_Asistencia', 'Permisos'];
+                else if (tipo === 'Auxiliar') hojasBackground = ['Asistencia_Auxiliar', 'Incidencias', 'Areas', 'Horarios', 'Registro_Asistencia', 'Permisos'];
+
+                // Carga de datos y logo en paralelo sin bloquear la interfaz
+                Promise.all([
+                    ...hojasBackground.map(h => fetchAPI({ accion: 'obtenerDatos', hoja: h })),
+                    fetchAPI({ accion: 'obtenerConfiguracion' })
+                ]).then(async (resultados) => {
+                    // Procesar hojas de datos
+                    hojasBackground.forEach((h, i) => {
+                        if(resultados[i].exito) datosMemoria[h] = resultados[i].datos || [];
+                    });
+
+                    // Procesar Logo (último elemento del array de resultados)
+                    let rLogo = resultados[resultados.length - 1];
                     if(rLogo.exito && rLogo.config && rLogo.config.LOGO_URL) {
                         let rB64 = await fetchAPI({ accion: 'obtenerBase64', url: rLogo.config.LOGO_URL });
                         if(rB64.exito) {
@@ -13623,9 +13640,9 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                             aplicarLogoEnInterfaz();
                         }
                     }
-                } catch(e) { console.error("Error al cargar logo en inicio:", e); }
+                }).catch(e => console.error("Error en procesos de fondo:", e));
 
-                document.getElementById('login-section').classList.add('d-none'); document.getElementById('dashboard-section').classList.remove('d-none'); document.getElementById('user-name-display').innerText = r.mensaje;
+                btn.innerHTML = 'Ingresar'; btn.disabled = false;
 
                 document.querySelectorAll('.admin-btn, .admin-only').forEach(el => el.classList.add('d-none'));
                 document.querySelectorAll('.menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
