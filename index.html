@@ -10838,6 +10838,22 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
 </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .futuristic-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 123, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            backdrop-filter: blur(4px);
+            transition: transform 0.3s ease;
+        }
+        .futuristic-card:hover { transform: translateY(-5px); }
+        .neon-text-blue { color: #007bff; text-shadow: 0 0 5px rgba(0, 123, 255, 0.5); }
+        .neon-text-purple { color: #6f42c1; text-shadow: 0 0 5px rgba(111, 66, 193, 0.5); }
+        .neon-text-cyan { color: #17a2b8; text-shadow: 0 0 5px rgba(23, 162, 184, 0.5); }
+    </style>
 </head>
 <body>
 
@@ -11309,7 +11325,23 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                         <button class="btn btn-success fw-bold shadow-sm admin-btn d-none" onclick="abrirModalMasivo('Docentes')"><i class="fa-solid fa-upload"></i> Masivo</button>
                     </div>
                 </div>
-                <div class="card card-view table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>DNI</th><th>Nombres</th><th>Nivel</th><th>Área Asignada</th><th>Estado</th><th class="text-center">Carnet QR</th><th class="text-center admin-btn d-none">Acciones</th></tr></thead><tbody id="tb-Docentes"></tbody></table></div>
+                <div class="row mb-3 g-2">
+                    <div class="col-12 col-md-4">
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-dark text-white"><i class="fa-solid fa-calendar-check"></i></span>
+                            <select id="filtro-doc-ano" class="form-select fw-bold" onchange="filtrarDocentes()">
+                                <option value="">Todos los Años</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white text-primary"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" id="buscar-doc-nombre" class="form-control" placeholder="Buscar por Nombre o DNI..." onkeyup="filtrarDocentes()">
+                        </div>
+                    </div>
+                </div>
+                <div class="card card-view table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>DNI</th><th>Nombres</th><th>Nivel</th><th>Área Asignada</th><th>Año</th><th>Estado</th><th class="text-center">Carnet QR</th><th class="text-center admin-btn d-none">Acciones</th></tr></thead><tbody id="tb-Docentes"></tbody></table></div>
             </div>
 
             <div id="v-horario-docente" class="vista-modulo d-none">
@@ -11456,13 +11488,75 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     <h5 class="mb-0 fw-bold">Lista de Estudiantes</h5>
                     <div class="d-flex align-items-center gap-1">
                         <button class="btn btn-success fw-bold shadow-sm" onclick="exportarExcel('Estudiantes')"><i class="fa-solid fa-file-excel"></i> Excel</button>
-                        <button class="btn btn-danger fw-bold shadow-sm" onclick="prepararDescargaGrupoPDF('Estudiantes')"><i class="fa-solid fa-file-pdf"></i> PDF Carnets</button>
+                        <button class="btn btn-danger fw-bold shadow-sm" onclick="abrirModalDescargaCarnets()"><i class="fa-solid fa-file-pdf"></i> PDF Carnets</button>
                         <span class="badge bg-dark fs-6 me-2" id="count-Estudiantes">Total: 0</span>
 
                         <button class="btn btn-primary fw-bold shadow-sm admin-btn d-none" onclick="abrirModalNuevo('Estudiantes')"><i class="fa-solid fa-plus"></i></button>
                         <button class="btn btn-success fw-bold shadow-sm admin-btn d-none" onclick="abrirModalMasivo('Estudiantes')"><i class="fa-solid fa-upload"></i></button>
                     </div>
                 </div>
+                <div class="row mb-2 g-2">
+                    <div class="col-12 col-md-4">
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-dark text-white"><i class="fa-solid fa-calendar-check"></i></span>
+                            <select id="filtro-est-ano" class="form-select fw-bold" onchange="filtrarEstudiantes()">
+                                <option value="">Todos los Años</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-primary text-white"><i class="fa-solid fa-venus-mars"></i></span>
+                            <select id="filtro-est-genero" class="form-select fw-bold" onchange="filtrarEstudiantes()">
+                                <option value="">Todos los Géneros</option>
+                                <option value="Hombre">Hombre</option>
+                                <option value="Mujer">Mujer</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 g-2">
+                    <!-- Dashboard Button -->
+                    <div class="col-12 mb-2">
+                        <button class="btn btn-dark w-100 fw-bold shadow-sm py-2" onclick="toggleEstadisticasEstudiantes()" id="btn-toggle-stats">
+                            <i class="fa-solid fa-chart-pie me-2 text-warning"></i> VER DASHBOARD DE ESTADÍSTICAS
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DASHBOARD (OCULTA POR DEFECTO) -->
+                <div id="dashboard-estudiantes" class="d-none mb-4 animate__animated animate__fadeIn">
+                    <div class="row g-3">
+                        <!-- Gráfico Grado/Sección -->
+                        <div class="col-12 col-lg-6">
+                            <div class="card futuristic-card h-100 p-3">
+                                <h6 class="fw-bold neon-text-blue mb-3"><i class="fa-solid fa-users-rectangle me-2"></i>ALUMNOS POR GRADO Y SECCIÓN</h6>
+                                <div class="chart-container">
+                                    <canvas id="chart-grados"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Gráfico Género -->
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="card futuristic-card h-100 p-3">
+                                <h6 class="fw-bold neon-text-purple mb-3"><i class="fa-solid fa-venus-mars me-2"></i>GÉNERO</h6>
+                                <div class="chart-container">
+                                    <canvas id="chart-genero"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Gráfico Edad -->
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="card futuristic-card h-100 p-3">
+                                <h6 class="fw-bold neon-text-cyan mb-3"><i class="fa-solid fa-cake-candles me-2"></i>EDADES</h6>
+                                <div class="chart-container">
+                                    <canvas id="chart-edades"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row mb-3 g-2">
                     <div class="col-12 col-md-3">
                         <div class="input-group shadow-sm">
@@ -11489,9 +11583,10 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                         </div>
                     </div>
                 </div>
-                <div class="card card-view table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>DNI</th><th>Nombres Completos</th><th>Grado/Sec</th><th>Nivel</th><th>Edad</th><th class="text-center">Carnet QR</th><th class="text-center admin-btn d-none">Acciones</th></tr></thead><tbody id="tb-Estudiantes"></tbody></table></div>
+                <div class="card card-view table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>DNI</th><th>Nombres Completos</th><th>Grado/Sec</th><th>Nivel</th><th>Edad</th><th>Género</th><th>Año</th><th class="text-center">Carnet QR</th><th class="text-center admin-btn d-none">Acciones</th></tr></thead><tbody id="tb-Estudiantes"></tbody></table></div>
                 <div id="qr-gen-box" style="position: absolute; left: -9999px; top: -9999px; display: block;"></div>
             </div>
+
 
             <div id="v-qr" class="card-view vista-modulo d-none text-center">
                 
@@ -11739,7 +11834,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
 
     <div class="modal fade" id="modal-Administradores" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-solid fa-user-shield"></i> Administrador</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="adm-0" class="form-control mb-2" placeholder="DNI (8 dígitos)" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '');"><input type="text" id="adm-1" class="form-control mb-2" placeholder="Nombres"><input type="text" id="adm-2" class="form-control mb-2" placeholder="Contraseña"><input type="text" id="adm-3" class="form-control mb-2" value="Administrador" disabled><select id="adm-4" class="form-select mb-3"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select><div id="msg-Administradores" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Administradores" class="btn btn-primary" onclick="guardarDato('Administradores', ['adm-0','adm-1','adm-2','adm-3','adm-4'])">Guardar</button></div></div></div></div>
     
-    <div class="modal fade" id="modal-Docentes" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-solid fa-chalkboard-user"></i> Docente</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="doc-0" class="form-control mb-2" placeholder="DNI (8 dígitos)" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '');"><input type="text" id="doc-1" class="form-control mb-2" placeholder="Nombres Completos"><input type="text" id="doc-2" class="form-control mb-2" placeholder="Contraseña"><select id="doc-3" class="form-select mb-2"><option value="Secundaria">Secundaria</option><option value="Primaria">Primaria</option></select><select id="doc-4" class="form-select mb-2"><option value="">Cargando áreas...</option></select><select id="doc-5" class="form-select mb-3"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select><div id="msg-Docentes" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Docentes" class="btn btn-primary" onclick="guardarDato('Docentes', ['doc-0','doc-1','doc-2','doc-3','doc-4','doc-5'])">Guardar</button></div></div></div></div>
+    <div class="modal fade" id="modal-Docentes" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-solid fa-chalkboard-user"></i> Docente</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="doc-0" class="form-control mb-2" placeholder="DNI (8 dígitos)" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '');"><input type="text" id="doc-1" class="form-control mb-2" placeholder="Nombres Completos"><input type="text" id="doc-2" class="form-control mb-2" placeholder="Contraseña"><select id="doc-3" class="form-select mb-2"><option value="Secundaria">Secundaria</option><option value="Primaria">Primaria</option></select><select id="doc-4" class="form-select mb-2"><option value="">Cargando áreas...</option></select><input type="number" id="doc-6" class="form-control mb-2" placeholder="Año (Ej: 2026)" value="2026"><select id="doc-5" class="form-select mb-3"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select><div id="msg-Docentes" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Docentes" class="btn btn-primary" onclick="guardarDocenteCompleto()">Guardar</button></div></div></div></div>
     
     <div class="modal fade" id="modal-Horario_Docentes" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title"><i class="fa-solid fa-business-time"></i> Horario Docente</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="hdc-0"><label class="text-muted small mb-1">Día de la Semana</label><select id="hdc-1" class="form-select mb-2"><option value="Lunes">Lunes</option><option value="Martes">Martes</option><option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option><option value="Viernes">Viernes</option></select><label class="text-muted small mb-1">Docente</label><select id="hdc-docente-select" class="form-select mb-2" onchange="sincronizarDocenteHorario()"><option value="">Seleccione Docente...</option></select><input type="hidden" id="hdc-2"><input type="hidden" id="hdc-3"><div class="row g-2 mb-3"><div class="col"><label class="text-muted small mb-1">Hora Ingreso</label><input type="time" id="hdc-4" class="form-control"></div><div class="col"><label class="text-muted small mb-1">Hora Salida</label><input type="time" id="hdc-5" class="form-control"></div></div><div id="msg-Horario_Docentes" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Horario_Docentes" class="btn btn-primary" onclick="guardarDato('Horario_Docentes', ['hdc-0','hdc-1','hdc-2','hdc-3','hdc-4','hdc-5'])">Guardar</button></div></div></div></div>
 
@@ -11764,7 +11859,12 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
 </div><label class="text-muted small mb-1">Área</label><select id="hor-4" class="form-select mb-2"><option value="">Cargando áreas...</option></select><label class="text-muted small mb-1">Docente Asignado</label><select id="hor-5" class="form-select mb-2"><option value="">Cargando docentes...</option></select><div class="row g-2 mb-3"><div class="col"><label class="text-muted small mb-1">Hora Inicio</label><input type="time" id="hor-6" class="form-control"></div><div class="col"><label class="text-muted small mb-1">Hora Fin</label><input type="time" id="hor-7" class="form-control"></div></div><div id="msg-Horarios" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Horarios" class="btn btn-primary" onclick="guardarDato('Horarios', ['hor-0','hor-1','hor-2','hor-3','hor-4','hor-5','hor-6','hor-7'])">Guardar</button></div></div></div></div>
     
     <div class="modal fade" id="modal-Feriados" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="fa-solid fa-calendar-day"></i> Nuevo Feriado</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="fer-0"><label class="text-muted small mb-1">Fecha del Feriado</label><input type="date" id="fer-1" class="form-control mb-3"><label class="text-muted small mb-1">Motivo / Descripción</label><input type="text" id="fer-2" class="form-control mb-2" placeholder="Ej: Día del Maestro"><div id="msg-Feriados" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Feriados" class="btn btn-danger" onclick="guardarDato('Feriados', ['fer-0','fer-1','fer-2'])">Guardar</button></div></div></div></div>
-    <div class="modal fade" id="modal-Estudiantes" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-solid fa-user-graduate"></i> Estudiante</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="est-0" class="form-control mb-2" placeholder="DNI (8 dígitos)" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '');"><input type="text" id="est-1" class="form-control mb-2" placeholder="Nombres Completos"><div class="row g-2 mb-2"><div class="col"><input type="text" id="est-2" class="form-control" placeholder="Grado (Ej: 3ro)"></div><div class="col"><input type="text" id="est-3" class="form-control" placeholder="Sección (Ej: B)"></div></div><div class="row g-2 mb-2"><div class="col"><select id="est-4" class="form-select"><option value="Secundaria">Secundaria</option><option value="Primaria">Primaria</option></select></div><div class="col"><input type="number" id="est-5" class="form-control" placeholder="Edad"></div></div>    <div class="mb-3">
+    <div class="modal fade" id="modal-Estudiantes" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-solid fa-user-graduate"></i> Estudiante</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="est-0" class="form-control mb-2" placeholder="DNI (8 dígitos)" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '');"><input type="text" id="est-1" class="form-control mb-2" placeholder="Nombres Completos"><div class="row g-2 mb-2"><div class="col"><input type="text" id="est-2" class="form-control" placeholder="Grado (Ej: 3ro)"></div><div class="col"><input type="text" id="est-3" class="form-control" placeholder="Sección (Ej: B)"></div></div><div class="row g-2 mb-2">
+    <div class="col"><select id="est-4" class="form-select"><option value="Secundaria">Secundaria</option><option value="Primaria">Primaria</option></select></div>
+    <div class="col"><input type="number" id="est-5" class="form-control" placeholder="Edad"></div>
+    <div class="col"><select id="est-8" class="form-select"><option value="">Género...</option><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+    <div class="col"><input type="number" id="est-7" class="form-control" placeholder="Año (Ej: 2026)" value="2026"></div>
+</div>    <div class="mb-3">
         <label class="small text-muted fw-bold">Foto para Carnet (Opcional):</label>
         <div class="input-group mb-2">
             <input type="file" id="est-foto-input" class="form-control form-control-sm" accept="image/*">
@@ -11944,7 +12044,73 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button><button type="button" class="btn btn-success fw-bold" onclick="procesarMasivo()"><i class="fa-solid fa-upload"></i> Subir Datos</button></div>
     </div></div></div>
     
-    <div class="modal fade" id="modalPDF" tabindex="-1"><div class="modal-dialog"><div class="modal-content border-danger border-2"><div class="modal-header bg-danger text-white"><h5 class="modal-title fw-bold"><i class="fa-solid fa-file-pdf"></i> Descarga de Carnets PDF</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="text-muted fw-bold">Selecciona el grupo para generar el PDF listo para imprimir.</p><select id="select-grupo-pdf" class="form-select mb-3 border-danger shadow-sm"></select><p class="text-muted fw-bold mt-2">Formato del Carnet</p><select id="select-formato-pdf" class="form-select mb-3 border-danger shadow-sm"><option value="horizontal">Horizontal (Apaisado)</option><option value="vertical">Vertical (Retrato)</option></select></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-descarga-pdf" type="button" class="btn btn-danger fw-bold shadow-sm" onclick="descargarPDFGrupo()">Descargar PDF</button></div></div></div></div>
+    <div class="modal fade" id="modalPDF" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-danger text-white border-0 py-3" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-pdf me-2"></i>Descarga de Carnets PDF</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="bg-light d-inline-block p-3 rounded-circle mb-2">
+                            <i class="fa-solid fa-id-card-clip text-danger" style="font-size: 40px;"></i>
+                        </div>
+                        <p class="text-muted small px-3">Seleccione los filtros para generar el archivo PDF con los carnets institucionales.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted"><i class="fa-solid fa-calendar-day me-1"></i> AÑO LECTIVO:</label>
+                        <select id="select-ano-pdf" class="form-select border-danger fw-bold py-2 shadow-sm" style="border-radius: 10px;">
+                            <option value="">Seleccione Año...</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted"><i class="fa-solid fa-layer-group me-1"></i> NIVEL EDUCATIVO:</label>
+                        <select id="select-nivel-pdf" class="form-select border-danger fw-bold py-2 shadow-sm" style="border-radius: 10px;">
+                            <option value="TODOS">TODOS LOS NIVELES</option>
+                            <option value="PRIMARIA">PRIMARIA</option>
+                            <option value="SECUNDARIA">SECUNDARIA</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted"><i class="fa-solid fa-users-rectangle me-1"></i> GRADO / SECCIÓN:</label>
+                        <select id="select-grupo-pdf-modal" class="form-select border-danger fw-bold py-2 shadow-sm" style="border-radius: 10px;">
+                            <option value="TODOS">TODOS LOS GRUPOS</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted"><i class="fa-solid fa-venus-mars me-1"></i> GÉNERO:</label>
+                        <select id="select-genero-pdf-modal" class="form-select border-danger fw-bold py-2 shadow-sm" style="border-radius: 10px;">
+                            <option value="TODOS">TODOS LOS GÉNEROS</option>
+                            <option value="Hombre">HOMBRE</option>
+                            <option value="Mujer">MUJER</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted"><i class="fa-solid fa-arrows-rotate me-1"></i> ORIENTACIÓN:</label>
+                        <select id="select-orientacion-pdf-modal" class="form-select border-danger fw-bold py-2 shadow-sm" style="border-radius: 10px;">
+                            <option value="horizontal">HORIZONTAL (DNI)</option>
+                            <option value="vertical">VERTICAL (FOTOMANSET)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                        <button id="btn-descarga-pdf-masiva" class="btn btn-danger btn-lg fw-bold shadow-sm py-2" onclick="ejecutarDescargaMasivaModal()" style="border-radius: 12px;">
+                            <i class="fa-solid fa-cloud-arrow-down me-2"></i>GENERAR CARNETS
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 py-2" style="border-radius: 0 0 20px 20px;">
+                    <small class="text-muted mx-auto"><i class="fa-solid fa-circle-info me-1"></i> Formato A4 - Horizontal</small>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="modalConsultaEstudiante" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -13576,18 +13742,25 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         function descargarPlantilla() {
             let hoja = document.getElementById('hoja-masivo').value;
             let ws_data = [];
-            
-            if(hoja === 'Estudiantes') { ws_data = [ ["DNI (8 digitos)", "Nombres Completos", "Grado (Ej: 3ro)", "Sección (Ej: B)", "Nivel (Secundaria/Primaria)", "Edad"], ["77502336", "Juan Perez Rojas", "3ro", "B", "Secundaria", "15"] ];
-            } else if(hoja === 'Docentes') { ws_data = [ ["DNI (8 digitos)", "Nombres Completos", "Nivel", "Área Asignada", "Estado (Activo/Inactivo)"], ["77502336", "Docente Juan Perez", "123456", "Secundaria", "Matemática", "Activo"] ];
+
+            if(hoja === 'Estudiantes') { 
+                ws_data = [ 
+                    ["DNI (8 digitos)", "Nombres Completos", "Grado (Ej: 3ro)", "Sección (Ej: B)", "Nivel (Secundaria/Primaria)", "Edad", "Año", "Género"],
+                    ["77502336", "Juan Perez Rojas", "3ro", "B", "Secundaria", "15", "2026", "Hombre"]
+                ];
+            } else if(hoja === 'Docentes') { 
+                ws_data = [ 
+                    ["DNI (8 digitos)", "Nombres Completos", "Contraseña", "Nivel", "Área Asignada", "Estado (Activo/Inactivo)", "Año"], 
+                    ["77502336", "Docente Juan Perez", "123456", "Secundaria", "Matemática", "Activo", "2026"] 
+                ];
             } else if(hoja === 'Auxiliares') { ws_data = [ ["DNI", "Nombres y Apellidos", "Contraseña", "Grados y Secciones a Cargo", "Hora de Inicio", "Hora de Fin", "Estado"], ["07750233", "Auxiliar Maria", "123456", "1ro A, 2do B", "07:00 AM", "08:30 AM", "Activo"] ];
             } else if(hoja === 'Horarios') { ws_data = [ ["Día (Ej: Lunes)", "Grado (Ej: 3ro)", "Sección (Ej: B)", "Área Asignada", "Docente Asignado", "Hora Inicio (Ej: 08:00 AM)", "Hora Fin (Ej: 09:30 AM)"], ["Lunes", "3ro", "B", "Matemática", "Juan Perez", "08:00 AM", "09:30 AM"] ];
             } else if(hoja === 'Horario_Docentes') { ws_data = [ ["Día (Ej: Lunes)", "DNI Docente", "Docente Asignado", "Hora Ingreso (Ej: 07:00 AM)", "Hora Salida (Ej: 01:00 PM)"], ["Lunes", "77502336", "Juan Perez", "07:00 AM", "01:00 PM"] ];
             } else { ws_data = [["Columna 1", "Columna 2", "Columna 3"]]; }
-            
+
             let ws = XLSX.utils.aoa_to_sheet(ws_data); let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Plantilla"); XLSX.writeFile(wb, `Plantilla_Masiva_${hoja}.xlsx`);
         }
-
         async function procesarMasivo() {
             let fileInput = document.getElementById('file-masivo'); let hoja = document.getElementById('hoja-masivo').value; let msgDiv = document.getElementById('msg-Masivo');
             let progressContainer = document.getElementById('progress-container-masivo'); let progressBar = document.getElementById('progress-bar-masivo'); let progressText = document.getElementById('progress-text-masivo');
@@ -13604,7 +13777,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
 
                     progressBar.style.width = '40%'; progressBar.innerText = '40%'; progressText.innerText = 'Estructurando columnas y omitiendo vacíos...';
 
-                    let expectedCols = (hoja === 'Estudiantes') ? 6 : (hoja === 'Docentes' ? 6 : (hoja === 'Auxiliares' ? 7 : (hoja === 'Horarios' ? 7 : (hoja === 'Horario_Docentes' ? 6 : 8))));
+                    let expectedCols = (hoja === 'Estudiantes') ? 8 : (hoja === 'Docentes' ? 7 : (hoja === 'Auxiliares' ? 7 : (hoja === 'Horarios' ? 7 : (hoja === 'Horario_Docentes' ? 6 : 8))));
                     
                     let rawData = jsonData.slice(1);
                     let matriz = [];
@@ -13615,13 +13788,25 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                             let newRow = [];
                             for (let j = 0; j < expectedCols; j++) { 
                                 let val = row[j] !== undefined ? String(row[j]).trim() : "";
-                                // Forzar 8 dígitos (Ceros a la izquierda) en columnas de DNI según la hoja
-                                if(j===0 && (hoja==='Estudiantes'||hoja==='Docentes'||hoja==='Auxiliares'||hoja==='Administradores')) {
-                                    val = val.padStart(8, '0');
-                                } else if (hoja==='Horario_Docentes' && j===1) {
-                                    val = val.padStart(8, '0');
+                                // Para Docentes, si j=6 (el Año en el Excel), lo movemos al índice 7 de la BD
+                                // y dejamos el índice 6 de la BD vacío (Llave)
+                                if (hoja === 'Docentes' && j === 6) {
+                                    newRow.push(""); // Espacio para Llave (índice 6)
+                                    newRow.push(val); // Año (índice 7)
+                                } else if (hoja === 'Estudiantes' && j === 6) {
+                                    newRow.push(""); // Espacio para Foto (índice 6)
+                                    newRow.push(val); // Año (índice 7)
+                                } else if (hoja === 'Estudiantes' && j === 7) {
+                                    newRow.push(val); // Género (índice 8)
+                                } else {
+                                    // Forzar 8 dígitos (Ceros a la izquierda) en columnas de DNI según la hoja
+                                    if(j===0 && (hoja==='Estudiantes'||hoja==='Docentes'||hoja==='Auxiliares'||hoja==='Administradores')) {
+                                        val = val.padStart(8, '0');
+                                    } else if (hoja==='Horario_Docentes' && j===1) {
+                                        val = val.padStart(8, '0');
+                                    }
+                                    newRow.push(val); 
                                 }
-                                newRow.push(val); 
                             }
                             if (hoja === 'Horarios') { newRow.unshift('HOR-' + Date.now() + Math.floor(Math.random() * 1000)); }
                             if (hoja === 'Horario_Docentes') { newRow.unshift('H-DOC-' + Date.now() + Math.floor(Math.random() * 1000)); }
@@ -13652,13 +13837,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             let data = [];
             
             if(hoja === 'Docentes') {
-                cabeceras = ["DNI", "Nombres Completos", "Contraseña", "Nivel", "Área Asignada", "Estado"];
+                cabeceras = ["DNI", "Nombres Completos", "Nivel", "Área Asignada", "Año", "Estado"];
                 data.push(cabeceras);
-                datosMemoria[hoja].forEach(row => data.push([row[0], row[1], row[2], row[3], row[4], row[5]]));
+                datosMemoria[hoja].forEach(row => data.push([row[0], row[1], row[3], row[4], row[7], row[5]]));
             } else if(hoja === 'Estudiantes') {
-                cabeceras = ["DNI", "Nombres Completos", "Grado", "Sección", "Nivel"];
+                cabeceras = ["DNI", "Nombres Completos", "Grado", "Sección", "Nivel", "Edad", "Género", "Año"];
                 data.push(cabeceras);
-                datosMemoria[hoja].forEach(row => data.push([row[0], row[1], row[2], row[3], row[4]]));
+                datosMemoria[hoja].forEach(row => data.push([row[0], row[1], row[2], row[3], row[4], row[5], row[8], row[7]]));
             } else {
                 return;
             }
@@ -13871,7 +14056,10 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     else btn.classList.remove('d-none');
                 });
             }
-if(idVista === 'v-reporte') {
+            if(idVista === 'v-carnets') {
+                mostrarSelectorAnos();
+            }
+            if(idVista === 'v-reporte') {
                 document.getElementById('tb-ReporteMatricial').innerHTML = '<tr><td colspan="9" class="text-muted py-5 fw-bold border border-dark">Selecciona Rango de Fechas, Área y Grado/Sección, luego presiona "Buscar".</td></tr>';
                 document.querySelector('#tabla-imprimir thead').innerHTML = '';
                 document.getElementById('resumen-reporte-docente').classList.add('d-none');
@@ -13890,11 +14078,117 @@ if(idVista === 'v-reporte') {
             }
         }
 
+        let chartsEstudiantes = { grados: null, genero: null, edades: null };
+
+        function toggleEstadisticasEstudiantes() {
+            let dashboard = document.getElementById('dashboard-estudiantes');
+            let btn = document.getElementById('btn-toggle-stats');
+            if (dashboard.classList.contains('d-none')) {
+                dashboard.classList.remove('d-none');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash me-2 text-warning"></i> OCULTAR DASHBOARD';
+                btn.classList.replace('btn-dark', 'btn-secondary');
+                inicializarGraficosEstudiantes();
+            } else {
+                dashboard.classList.add('d-none');
+                btn.innerHTML = '<i class="fa-solid fa-chart-pie me-2 text-warning"></i> VER DASHBOARD DE ESTADÍSTICAS';
+                btn.classList.replace('btn-secondary', 'btn-dark');
+            }
+        }
+
+        function inicializarGraficosEstudiantes() {
+            let fAno = document.getElementById('filtro-est-ano').value;
+            let anoActual = new Date().getFullYear().toString();
+            let anoFiltro = fAno || anoActual;
+
+            let estudiantes = (datosMemoria['Estudiantes'] || []).filter(e => {
+                if(fAno === "") return true; // Todos los años
+                return String(e[7]) === String(fAno);
+            });
+
+            // 1. Datos Grado/Sección
+            let dataGrados = {};
+            estudiantes.forEach(e => {
+                let gs = `${e[2]} "${e[3]}"`;
+                dataGrados[gs] = (dataGrados[gs] || 0) + 1;
+            });
+            let labelsGrados = Object.keys(dataGrados).sort();
+            let valsGrados = labelsGrados.map(l => dataGrados[l]);
+
+            // 2. Datos Género
+            let dataGen = { 'Hombre': 0, 'Mujer': 0, 'Sin definir': 0 };
+            estudiantes.forEach(e => {
+                let g = normalizarGenero(e[8]);
+                if(dataGen[g] !== undefined) dataGen[g]++;
+                else dataGen['Sin definir']++;
+            });
+
+            // 3. Datos Edades
+            let dataEdades = {};
+            estudiantes.forEach(e => {
+                let edad = e[5] || '??';
+                dataEdades[edad] = (dataEdades[edad] || 0) + 1;
+            });
+            let labelsEdades = Object.keys(dataEdades).sort((a,b) => parseInt(a)-parseInt(b));
+            let valsEdades = labelsEdades.map(l => dataEdades[l]);
+
+            // Renderizar Gráficos con Chart.js
+            const ctxGrados = document.getElementById('chart-grados').getContext('2d');
+            const ctxGenero = document.getElementById('chart-genero').getContext('2d');
+            const ctxEdades = document.getElementById('chart-edades').getContext('2d');
+
+            // Destruir instancias previas si existen
+            Object.values(chartsEstudiantes).forEach(c => { if(c) c.destroy(); });
+
+            // GRADIENTES
+            const gradientBlue = ctxGrados.createLinearGradient(0, 0, 0, 400);
+            gradientBlue.addColorStop(0, 'rgba(0, 123, 255, 1)');
+            gradientBlue.addColorStop(1, 'rgba(0, 123, 255, 0.2)');
+
+            const gradientPurple = ctxGenero.createLinearGradient(0, 0, 0, 400);
+            gradientPurple.addColorStop(0, 'rgba(111, 66, 193, 1)');
+            gradientPurple.addColorStop(1, 'rgba(111, 66, 193, 0.2)');
+
+            const gradientCyan = ctxEdades.createLinearGradient(0, 0, 0, 400);
+            gradientCyan.addColorStop(0, 'rgba(23, 162, 184, 1)');
+            gradientCyan.addColorStop(1, 'rgba(23, 162, 184, 0.2)');
+
+            // Config común
+            const commonOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } };
+
+            chartsEstudiantes.grados = new Chart(ctxGrados, {
+                type: 'bar',
+                data: { labels: labelsGrados, datasets: [{ label: 'Alumnos', data: valsGrados, backgroundColor: gradientBlue, borderRadius: 10, borderSkipped: false }] },
+                options: commonOptions
+            });
+
+            chartsEstudiantes.genero = new Chart(ctxGenero, {
+                type: 'doughnut',
+                data: { labels: Object.keys(dataGen), datasets: [{ data: Object.values(dataGen), backgroundColor: ['#007bff', '#e83e8c', '#6c757d'], hoverOffset: 10, borderWeight: 0 }] },
+                options: { ...commonOptions, plugins: { legend: { display: true, position: 'bottom' } }, scales: { y: { display: false }, x: { display: false } } }
+            });
+
+            chartsEstudiantes.edades = new Chart(ctxEdades, {
+                type: 'line',
+                data: { labels: labelsEdades, datasets: [{ label: 'Cant.', data: valsEdades, borderColor: '#17a2b8', backgroundColor: gradientCyan, fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#17a2b8' }] },
+                options: commonOptions
+            });
+        }
+
+        function normalizarGenero(g) {
+            if (!g) return "Sin definir";
+            let s = g.trim().toLowerCase();
+            if (s === "hombre" || s === "masculino") return "Hombre";
+            if (s === "mujer" || s === "femenino") return "Mujer";
+            return "Sin definir";
+        }
+
         function filtrarEstudiantes() {
             let fDni = document.getElementById('buscar-dni').value.toLowerCase().trim();
             let fNom = document.getElementById('buscar-nombre').value.toLowerCase().trim();
             let fGrado = document.getElementById('buscar-grado').value.toLowerCase().trim();
             let fSec = document.getElementById('buscar-seccion').value.toLowerCase().trim();
+            let fAno = document.getElementById('filtro-est-ano').value;
+            let fGen = document.getElementById('filtro-est-genero').value;
             let count = 0;
 
             document.querySelectorAll('#tb-Estudiantes tr').forEach(tr => {
@@ -13902,17 +14196,154 @@ if(idVista === 'v-reporte') {
                     let dni = tr.children[0].innerText.toLowerCase();
                     let nombres = tr.children[1].innerText.toLowerCase();
                     let gradoSec = tr.children[2].innerText.toLowerCase(); 
+                    let genero = normalizarGenero(tr.children[5].innerText);
+                    let ano = tr.children[6].innerText;
 
-                    if(dni.includes(fDni) && nombres.includes(fNom) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec))) { 
+                    if(dni.includes(fDni) && nombres.includes(fNom) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec)) && (fAno === "" || ano === fAno) && (fGen === "" || genero === fGen)) { 
                         tr.style.display = ''; count++; 
                     } else { tr.style.display = 'none'; } 
                 }
             });
             let cb = document.getElementById('count-Estudiantes');
             if(cb) cb.innerText = 'Total: ' + count;
+
+            if(!document.getElementById('dashboard-estudiantes').classList.contains('d-none')) {
+                inicializarGraficosEstudiantes();
+            }
         }
 
-        
+        function filtrarDocentes() {
+            let fTxt = document.getElementById('buscar-doc-nombre').value.toLowerCase().trim();
+            let fAno = document.getElementById('filtro-doc-ano').value;
+            let count = 0;
+
+            document.querySelectorAll('#tb-Docentes tr').forEach(tr => {
+                if(tr.children.length > 2) { 
+                    let dni = tr.children[0].innerText.toLowerCase();
+                    let nombres = tr.children[1].innerText.toLowerCase();
+                    let ano = tr.children[4].innerText; // En la tabla, Año es la 5ta columna (index 4)
+
+                    if((dni.includes(fTxt) || nombres.includes(fTxt)) && (fAno === "" || ano === fAno)) { 
+                        tr.style.display = ''; count++; 
+                    } else { tr.style.display = 'none'; } 
+                }
+            });
+            let cb = document.getElementById('count-Docentes');
+            if(cb) cb.innerText = 'Total: ' + count;
+        }
+
+        function abrirModalDescargaCarnets() {
+            let selectAno = document.getElementById('select-ano-pdf');
+            let selectGrupo = document.getElementById('select-grupo-pdf-modal');
+            if(!selectAno || !selectGrupo) return;
+            
+            let estudiantes = datosMemoria['Estudiantes'] || [];
+            
+            // Poblar Años
+            let anos = [...new Set(estudiantes.map(f => f[7]))].filter(Boolean).sort((a,b) => b-a);
+            let optionsAno = '<option value="">Seleccione Año...</option>';
+            anos.forEach(a => optionsAno += `<option value="${a}">${a}</option>`);
+            selectAno.innerHTML = optionsAno;
+
+            // Poblar Grupos (Grado + Sección)
+            let gruposSet = new Set();
+            estudiantes.forEach(f => {
+                if(f[2] && f[3]) gruposSet.add(`${f[2]}|${f[3]}`);
+            });
+            let optionsGrupo = '<option value="TODOS">TODOS LOS GRUPOS</option>';
+            Array.from(gruposSet).sort().forEach(g => {
+                let p = g.split('|');
+                optionsGrupo += `<option value="${g}">${p[0]} "${p[1]}"</option>`;
+            });
+            selectGrupo.innerHTML = optionsGrupo;
+            
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPDF')).show();
+        }
+
+        async function ejecutarDescargaMasivaModal() {
+            let ano = document.getElementById('select-ano-pdf').value;
+            let nivel = document.getElementById('select-nivel-pdf').value;
+            let grupo = document.getElementById('select-grupo-pdf-modal').value;
+            let genero = document.getElementById('select-genero-pdf-modal').value;
+            let formato = document.getElementById('select-orientacion-pdf-modal').value;
+            
+            if(!ano) return alert("Por favor, seleccione un año lectivo.");
+            
+            let btn = document.getElementById('btn-descarga-pdf-masiva');
+            let originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando PDF...';
+            btn.disabled = true;
+
+            let estudiantes = (datosMemoria['Estudiantes'] || []).filter(e => {
+                let matchAno = String(e[7]) === String(ano);
+                let matchNivel = (nivel === 'TODOS' || String(e[4]).toUpperCase().includes(nivel));
+                let matchGenero = (genero === 'TODOS' || normalizarGenero(e[8]) === genero);
+                
+                let matchGrupo = true;
+                if(grupo !== 'TODOS') {
+                    let p = grupo.split('|');
+                    matchGrupo = (String(e[2]) === p[0] && String(e[3]) === p[1]);
+                }
+                return matchAno && matchNivel && matchGrupo && matchGenero;
+            });
+
+            if(estudiantes.length === 0) {
+                alert("No se encontraron estudiantes para los filtros seleccionados.");
+                btn.innerHTML = originalHTML; btn.disabled = false;
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                let pdf = new jsPDF('p', 'mm', 'a4');
+                let cW, cH, cols, rows;
+
+                if (formato === 'vertical') {
+                    cW = 54; cH = 85.6; // Tamaño DNI Vertical
+                    cols = 3; rows = 3; // 9 carnets por hoja
+                } else {
+                    cW = 85.6; cH = 54; // Tamaño DNI Horizontal
+                    cols = 2; rows = 5; // 10 carnets por hoja
+                }
+
+                let marginX = (210 - (cW * cols)) / 2;
+                let marginY = (297 - (cH * rows)) / 2;
+
+                for (let i = 0; i < estudiantes.length; i++) {
+                    let e = estudiantes[i];
+                    if (i > 0 && i % (cols * rows) === 0) pdf.addPage();
+                    let col = i % cols, row = Math.floor(i / cols) % rows;
+                    let x = marginX + (col * cW), y = marginY + (row * cH);
+                    let canvas = await generarCanvasCarnet(e[0], e[1], e[2], e[3], e[4], e[6] || '', formato, e[7] || '');
+                    let imgData = canvas.toDataURL("image/jpeg", 0.8);
+                    pdf.addImage(imgData, 'JPEG', x, y, cW, cH);
+                }
+                pdf.save(`Carnets_${formato.toUpperCase()}_${nivel}_${ano}.pdf`);
+                bootstrap.Modal.getInstance(document.getElementById('modalPDF')).hide();
+            } catch (err) {
+                console.error(err);
+                alert("Error al generar el PDF: " + err.message);
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function actualizarSelectAnos() {
+            const poblar = (hoja, selectId, colIndex) => {
+                let select = document.getElementById(selectId);
+                if(!select) return;
+                let valorActual = select.value;
+                let anos = [...new Set((datosMemoria[hoja] || []).map(f => f[colIndex]))].filter(Boolean).sort((a,b) => b-a);
+                let options = '<option value="">Todos los Años</option>';
+                anos.forEach(a => options += `<option value="${a}">${a}</option>`);
+                select.innerHTML = options;
+                select.value = valorActual;
+            };
+            poblar('Estudiantes', 'filtro-est-ano', 7);
+            poblar('Docentes', 'filtro-doc-ano', 7);
+        }
+
         function filtrarIncidencias() {
             let fNom = document.getElementById('buscar-inc-txt').value.toLowerCase().trim();
             let fGrado = document.getElementById('buscar-inc-grado').value.toLowerCase().trim();
@@ -14536,6 +14967,7 @@ if(idVista === 'v-reporte') {
                 datosMemoria[hoja] = [];
             }
             dibujarFilasTabla(hoja, datosMemoria[hoja]);
+            if(hoja === 'Estudiantes' || hoja === 'Docentes') actualizarSelectAnos();
         }
 
         function dibujarFilasTabla(hoja, datosArray) {
@@ -14546,6 +14978,8 @@ if(idVista === 'v-reporte') {
                 
                 let countBadge = document.getElementById('count-' + hoja);
                 if(countBadge) countBadge.innerText = 'Total: ' + datosArray.length;
+
+                if(hoja === 'Estudiantes' || hoja === 'Docentes') actualizarSelectAnos();
 
                 let arrayAVisualizar = (hoja === 'Registro_Asistencia' || hoja === 'Asistencia_Auxiliar' || hoja === 'Asistencia_Docentes') ? [...datosArray].reverse() : datosArray;
 
@@ -14599,8 +15033,8 @@ if(idVista === 'v-reporte') {
                     if(hoja === 'Administradores') tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td><span class="badge ${fila[4]=='Activo'?'bg-success':'bg-danger'}">${fila[4]}</span></td>${cellAcciones}`;
                     
                     if(hoja === 'Docentes') {
-                        let cellDescarga = `<td class="text-center admin-btn ${displayAcciones}"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','Personal Docente','','${fila[3]}', '')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
-                        tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[3]}</td><td>${fila[4]}</td><td><span class="badge ${fila[5]=='Activo'?'bg-success':'bg-danger'}">${fila[5]}</span></td>${cellDescarga}${cellAcciones}`;
+                        let cellDescarga = `<td class="text-center admin-btn ${displayAcciones}"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','Personal Docente','','${fila[3]}', '', '${fila[7] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
+                        tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[3]}</td><td>${fila[4]}</td><td>${fila[7] || '-'}</td><td><span class="badge ${fila[5]=='Activo'?'bg-success':'bg-danger'}">${fila[5]}</span></td>${cellDescarga}${cellAcciones}`;
                     }
 
                     if(hoja === 'Auxiliares') tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td class="text-muted">••••••</td><td>${fila[3]}</td><td>${fila[4]}</td><td>${fila[5]}</td><td><span class="badge ${fila[6]=='Activo'?'bg-success':'bg-danger'}">${fila[6]}</span></td>${cellAcciones}`;
@@ -14641,8 +15075,8 @@ if(idVista === 'v-reporte') {
                     }
 
                     if(hoja === 'Estudiantes') {
-                        let cellDescarga = `<td class="text-center"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','${fila[2]}','${fila[3]}','${fila[4]}', '${fila[6] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
-                        tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[2]} "${fila[3]}"</td><td>${fila[4]}</td><td>${fila[5] || '-'}</td>${cellDescarga}${cellAcciones}`;
+                        let cellDescarga = `<td class="text-center"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','${fila[2]}','${fila[3]}','${fila[4]}', '${fila[6] || ''}', '${fila[7] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
+                        tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[2]} "${fila[3]}"</td><td>${fila[4]}</td><td>${fila[5] || '-'}</td><td>${normalizarGenero(fila[8])}</td><td>${fila[7] || '-'}</td>${cellDescarga}${cellAcciones}`;
                     }
                     if(hoja === 'Incidencias') {
                         let fStr = fila[2] || fila[1]; // Fecha incidente o Fecha Registro
@@ -14804,6 +15238,12 @@ if(idVista === 'v-reporte') {
                 limpiarFotoCapturadaEstudiante();
                 let linkInput = document.getElementById('est-foto-link');
                 if(linkInput) linkInput.value = fila[6] || "";
+                let anoInput = document.getElementById('est-7');
+                if(anoInput) anoInput.value = fila[7] || "";
+            }
+            if(hoja === 'Docentes') {
+                let anoInput = document.getElementById('doc-6');
+                if(anoInput) anoInput.value = fila[7] || "";
             }
             if(hoja === 'Administradores') pref = 'adm'; if(hoja === 'Docentes') pref = 'doc'; if(hoja === 'Areas') pref = 'are'; if(hoja === 'Horarios') pref = 'hor'; if(hoja === 'Estudiantes') pref = 'est'; if(hoja === 'Feriados') pref = 'fer'; if(hoja === 'Auxiliares') pref = 'aux'; if(hoja === 'Incidencias') pref = 'inc'; if(hoja === 'Registro_Asistencia') pref = 'reg'; if(hoja === 'Asistencia_Auxiliar') pref = 'aax'; if(hoja === 'Asistencia_Docentes') pref = 'adc';
             
@@ -14961,6 +15401,47 @@ if(idVista === 'v-reporte') {
             } else { msgDiv.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> ' + r.mensaje + '</span>'; }
         }
 
+        async function guardarDocenteCompleto() {
+            let datos = [
+                document.getElementById('doc-0').value,
+                document.getElementById('doc-1').value,
+                document.getElementById('doc-2').value,
+                document.getElementById('doc-3').value,
+                document.getElementById('doc-4').value,
+                document.getElementById('doc-5').value,
+                "", // Llave (columna 6 en DB, G)
+                document.getElementById('doc-6').value // Año (columna 7 en DB, H)
+            ];
+
+            let msg = document.getElementById('msg-Docentes');
+            if(datos[0].length !== 8) { msg.innerHTML = '<span class="text-danger">DNI inválido</span>'; return; }
+            if(datos[1]==="" || datos[2]==="") { msg.innerHTML = '<span class="text-danger">Faltan campos</span>'; return; }
+            
+            msg.innerHTML = '<span class="text-primary"><i class="fa-solid fa-spinner fa-spin"></i> Procesando...</span>';
+
+            if(editandoID) {
+                let filaAnterior = datosMemoria['Docentes'].find(f => f[0].toString() === editandoID.toString());
+                if(filaAnterior) {
+                    // Preservar Llave (índice 6) si ya existe
+                    if(filaAnterior.length > 6) datos[6] = filaAnterior[6];
+                    // Mantener año si el input estuviera vacío (aunque tiene default)
+                    if(datos[7] === "" && filaAnterior.length > 7) datos[7] = filaAnterior[7];
+                }
+            }
+
+            let req = { hoja: 'Docentes', datos: datos };
+            if(editandoID) { req.accion = 'editarRegistro'; req.idActual = editandoID; } else { req.accion = 'guardarRegistro'; }
+
+            let r = await fetchAPI(req);
+            if(r.exito) {
+                msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check"></i> ' + r.mensaje + '</span>';
+                cargarTabla('Docentes');
+                setTimeout(() => { bootstrap.Modal.getInstance(document.getElementById('modal-Docentes')).hide(); cancelarEdicion('Docentes'); }, 1000);
+            } else {
+                msg.innerHTML = '<span class="text-danger">' + r.mensaje + '</span>';
+            }
+        }
+
         async function eliminarRegistro(hoja, id) { 
             if(hoja === 'Registro_Asistencia' || hoja === 'Asistencia_Auxiliar' || hoja === 'Asistencia_Docentes') { if(!confirm(`⚠️ ADVERTENCIA: ¿Deseas eliminar este registro permanentemente?`)) return; } 
             else { if(!confirm(`⚠️ ¿ELIMINAR permanentemente?`)) return; }
@@ -14973,7 +15454,7 @@ if(idVista === 'v-reporte') {
         function abrirModalMasivo(hoja) { document.getElementById('hoja-masivo').value = hoja; document.getElementById('file-masivo').value = ""; document.getElementById('msg-Masivo').innerHTML = ""; bootstrap.Modal.getOrCreateInstance(document.getElementById('modalMasivo')).show(); }
 
         // ================= CREACIÓN DE CARNETS Y CANVAS =================
-        function generarCanvasCarnet(dni, nombres, grado, seccion, nivel, fotoUrl, formato = 'horizontal') {
+        function generarCanvasCarnet(dni, nombres, grado, seccion, nivel, fotoUrl, formato = 'horizontal', ano = '') {
             return new Promise((resolve) => {
                 let cont = document.getElementById('qr-gen-box');
                 cont.innerHTML = '';
@@ -14997,6 +15478,7 @@ if(idVista === 'v-reporte') {
                     ctx.fillStyle = "#0d6efd"; ctx.fillRect(3, 63, canvas.width - 6, 30);
                     ctx.fillStyle = "#ffc107"; ctx.font = "bold 16px sans-serif";
                     let textoNivel = nivel ? nivel.toUpperCase() : "EDUCACIÓN SECUNDARIA";
+                    if(ano) textoNivel += " - AÑO " + ano;
                     ctx.fillText(textoNivel, canvas.width/2, 84);
 
                     let drawRestAndResolve = () => {
@@ -15017,21 +15499,34 @@ if(idVista === 'v-reporte') {
                                 ctx.fillStyle = "#fff"; ctx.fillRect(365, 115, 150, 150);
                                 ctx.drawImage(qrSource, 370, 120, 140, 140);
                             }
-                            ctx.textAlign = "left"; ctx.fillStyle = "#000000"; ctx.font = "bold 16px sans-serif";
-                            ctx.fillText(grado === 'Personal Docente' ? "DOCENTE:" : "ESTUDIANTE:", 145, 130);
+                            ctx.textAlign = "left"; ctx.fillStyle = "#333"; ctx.font = "bold 14px sans-serif";
+                            ctx.fillText(grado === 'Personal Docente' ? "DOCENTE:" : "ESTUDIANTE:", 145, 125);
+                            
                             ctx.fillStyle = "#0d6efd";
-                            let fontSizeH = 20; ctx.font = `bold ${fontSizeH}px sans-serif`;
+                            let fontSizeH = 22; ctx.font = `bold ${fontSizeH}px sans-serif`;
                             while (fontSizeH > 10 && (ctx.measureText(linea1.toUpperCase()).width > 215 || (linea2 && ctx.measureText(linea2.toUpperCase()).width > 215))) {
                                 fontSizeH--; ctx.font = `bold ${fontSizeH}px sans-serif`;
                             }
-                            ctx.fillText(linea1.toUpperCase(), 145, 155);
-                            if(linea2) ctx.fillText(linea2.toUpperCase(), 145, 180);
+                            ctx.fillText(linea1.toUpperCase(), 145, 150);
+                            if(linea2) ctx.fillText(linea2.toUpperCase(), 145, 175);
 
-                            let basePosY = linea2 ? 225 : 200;
+                            let basePosY = linea2 ? 220 : 195;
+                            
+                            // DNI
+                            ctx.fillStyle = "#333"; ctx.font = "bold 14px sans-serif";
+                            ctx.fillText("DNI:", 145, basePosY);
                             ctx.fillStyle = "#000"; ctx.font = "bold 18px sans-serif";
-                            ctx.fillText("DNI: " + dni, 145, basePosY);
-                            if (grado !== 'Personal Docente') { ctx.fillText(`GRADO/SEC: ${grado} "${seccion}"`, 145, basePosY + 30); } 
-                            else { ctx.fillStyle = "#dc3545"; ctx.fillText(`PERSONAL DOCENTE`, 145, basePosY + 30); }
+                            ctx.fillText(dni, 185, basePosY);
+                            
+                            // GRADO/SEC
+                            ctx.fillStyle = "#333"; ctx.font = "bold 14px sans-serif";
+                            ctx.fillText("GRADO/SEC:", 145, basePosY + 35);
+                            ctx.fillStyle = "#000"; ctx.font = "bold 18px sans-serif";
+                            if (grado !== 'Personal Docente') { 
+                                ctx.fillText(`${grado} "${seccion}"`, 145, basePosY + 60); 
+                            } else { 
+                                ctx.fillStyle = "#dc3545"; ctx.fillText(`PERSONAL DOCENTE`, 145, basePosY + 60); 
+                            }
                         } else {
                             ctx.textAlign = "center"; ctx.fillStyle = "#000000"; ctx.font = "bold 14px sans-serif";
                             ctx.fillText(grado === 'Personal Docente' ? "DOCENTE:" : "ESTUDIANTE:", canvas.width/2, 260);
@@ -15057,7 +15552,7 @@ if(idVista === 'v-reporte') {
 
                         ctx.fillStyle = "#dc3545"; ctx.fillRect(3, canvas.height - 33, canvas.width - 6, 30);
                         ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "bold 13px sans-serif";
-                        ctx.fillText("CARNET INSTITUCIONAL 2026", canvas.width/2, canvas.height - 13);
+                        ctx.fillText("CARNET INSTITUCIONAL", canvas.width/2, canvas.height - 13);
                         resolve(canvas);
                     };
 
@@ -15117,8 +15612,8 @@ if(idVista === 'v-reporte') {
                 }, 500);
             });
         } let carnetActualParams = null;
-        async function mostrarCarnetSolo(dni, nombres, grado, seccion, nivel, fotoUrl) {
-            carnetActualParams = { dni, nombres, grado, seccion, nivel, fotoUrl };
+        async function mostrarCarnetSolo(dni, nombres, grado, seccion, nivel, fotoUrl, ano = '') {
+            carnetActualParams = { dni, nombres, grado, seccion, nivel, fotoUrl, ano };
             document.getElementById('select-formato-individual').value = 'horizontal';
             let modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerQR'));
             modal.show();
@@ -15131,7 +15626,7 @@ if(idVista === 'v-reporte') {
             let btnDescargar = document.getElementById('btn-descargar-qr-solo');
             btnDescargar.disabled = true; btnDescargar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cargando...';
             
-            let canvas = await generarCanvasCarnet(carnetActualParams.dni, carnetActualParams.nombres, carnetActualParams.grado, carnetActualParams.seccion, carnetActualParams.nivel, carnetActualParams.fotoUrl, formato);
+            let canvas = await generarCanvasCarnet(carnetActualParams.dni, carnetActualParams.nombres, carnetActualParams.grado, carnetActualParams.seccion, carnetActualParams.nivel, carnetActualParams.fotoUrl, formato, carnetActualParams.ano);
             let displayCanvas = document.getElementById('carnet-canvas');
             displayCanvas.width = canvas.width;
             displayCanvas.height = canvas.height;
@@ -15214,9 +15709,9 @@ if(idVista === 'v-reporte') {
                 let canvas;
                 
                 if (targetPDFDownload === 'Estudiantes') {
-                    canvas = await generarCanvasCarnet(f[0], f[1], f[2], f[3], f[4], f[6] || '', formato);
+                    canvas = await generarCanvasCarnet(f[0], f[1], f[2], f[3], f[4], f[6] || '', formato, f[7] || '');
                 } else {
-                    canvas = await generarCanvasCarnet(f[0], f[1], 'Personal Docente', '', f[3], '', formato);
+                    canvas = await generarCanvasCarnet(f[0], f[1], 'Personal Docente', '', f[3], '', formato, f[7] || '');
                 }
                 
                 let imgData = canvas.toDataURL("image/jpeg", 1.0);
@@ -15742,7 +16237,9 @@ if(idVista === 'v-reporte') {
                 document.getElementById('est-3').value,
                 document.getElementById('est-4').value,
                 document.getElementById('est-5').value,
-                "" // Foto (columna 6 en DB, G)
+                "", // Foto (columna 6 en DB, G)
+                document.getElementById('est-7').value, // Año (columna 7 en DB, H)
+                document.getElementById('est-8').value // Género (columna 8 en DB, I)
             ];
 
             let msg = document.getElementById('msg-Estudiantes');
@@ -15773,6 +16270,16 @@ if(idVista === 'v-reporte') {
             } else if (editandoID && datos[6] === "") {
                 let filaAnterior = datosMemoria['Estudiantes'].find(f => f[0].toString() === editandoID.toString());
                 if(filaAnterior && filaAnterior.length > 6) datos[6] = filaAnterior[6];
+            }
+
+            // Si es edición y no se envió año nuevo, mantener el anterior si el input está vacío (pero el input tiene default)
+            if (editandoID && datos[7] === "") {
+                let filaAnterior = datosMemoria['Estudiantes'].find(f => f[0].toString() === editandoID.toString());
+                if(filaAnterior && filaAnterior.length > 7) datos[7] = filaAnterior[7];
+            }
+            if (editandoID && datos[8] === "") {
+                let filaAnterior = datosMemoria['Estudiantes'].find(f => f[0].toString() === editandoID.toString());
+                if(filaAnterior && filaAnterior.length > 8) datos[8] = filaAnterior[8];
             }
 
             let req = { hoja: 'Estudiantes', datos: datos };
