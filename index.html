@@ -690,7 +690,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -1332,7 +1333,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -1368,6 +1369,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -2209,7 +2217,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -2851,7 +2860,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -2887,6 +2896,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -3728,7 +3744,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -4370,7 +4387,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -4406,6 +4423,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -5247,7 +5271,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -5889,7 +5914,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -5925,6 +5950,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -6766,7 +6798,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -7408,7 +7441,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -7444,6 +7477,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -8285,7 +8325,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -8927,7 +8968,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -8963,6 +9004,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -9804,7 +9852,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -10446,7 +10495,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -10482,6 +10531,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -10853,6 +10909,11 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         .neon-text-blue { color: #007bff; text-shadow: 0 0 5px rgba(0, 123, 255, 0.5); }
         .neon-text-purple { color: #6f42c1; text-shadow: 0 0 5px rgba(111, 66, 193, 0.5); }
         .neon-text-cyan { color: #17a2b8; text-shadow: 0 0 5px rgba(23, 162, 184, 0.5); }
+    </style>
+    <style>
+        .group-header:hover { background-color: #e9ecef !important; }
+        .toggle-icon { transition: transform 0.2s; }
+        .cursor-pointer { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -11407,7 +11468,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     <div class="col-6 col-md-4"><input type="text" id="buscar-hor-grado" class="form-control shadow-sm" placeholder="Grado (Ej: 3ro)" onkeyup="filtrarHorarios()"></div>
                     <div class="col-6 col-md-4"><input type="text" id="buscar-hor-seccion" class="form-control shadow-sm" placeholder="Sección (Ej: B)" onkeyup="filtrarHorarios()"></div>
                 </div>
-                <div class="card card-view table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>Día</th><th>Grado/Sec</th><th>Área</th><th>Docente</th><th>Inicio</th><th>Fin</th><th class="text-center admin-btn d-none">Acciones</th></tr></thead><tbody id="tb-Horarios"></tbody></table></div>
+                <div class="card card-view table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>Día</th><th>Grado/Sec</th><th>Área</th><th>Docente</th><th>Inicio</th><th>Fin</th><th>Estado</th><th class="text-center admin-btn d-none">Acciones</th></tr></thead><tbody id="tb-Horarios"></tbody></table></div>
             </div>
 
             <div id="v-feriados" class="vista-modulo d-none">
@@ -11491,8 +11552,9 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                         <button class="btn btn-danger fw-bold shadow-sm" onclick="abrirModalDescargaCarnets()"><i class="fa-solid fa-file-pdf"></i> PDF Carnets</button>
                         <span class="badge bg-dark fs-6 me-2" id="count-Estudiantes">Total: 0</span>
 
-                        <button class="btn btn-primary fw-bold shadow-sm admin-btn d-none" onclick="abrirModalNuevo('Estudiantes')"><i class="fa-solid fa-plus"></i></button>
-                        <button class="btn btn-success fw-bold shadow-sm admin-btn d-none" onclick="abrirModalMasivo('Estudiantes')"><i class="fa-solid fa-upload"></i></button>
+                        <button class="btn btn-primary fw-bold shadow-sm admin-btn d-none" id="btn-add-estudiante" onclick="abrirModalNuevo('Estudiantes')"><i class="fa-solid fa-plus"></i></button>
+                        <button class="btn btn-success fw-bold shadow-sm admin-btn d-none" id="btn-upload-estudiante" onclick="abrirModalMasivo('Estudiantes')"><i class="fa-solid fa-upload"></i></button>
+
                     </div>
                 </div>
                 <div class="row mb-2 g-2">
@@ -11856,7 +11918,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
     <div class="modal fade" id="modal-Horarios" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-regular fa-clock"></i> Horario de Alumnos (AM/PM)</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="hor-0"><label class="text-muted small mb-1">Día de la Semana</label><select id="hor-1" class="form-select mb-2"><option value="Lunes">Lunes</option><option value="Martes">Martes</option><option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option><option value="Viernes">Viernes</option></select><div class="row g-2 mb-2">
     <div class="col"><label class="text-muted small mb-1">Grado</label><select id="hor-2" class="form-select" onchange="actualizarSeccionesHorarios()"><option value="">Grado...</option></select></div>
     <div class="col"><label class="text-muted small mb-1">Sección</label><select id="hor-3" class="form-select"><option value="">Sección...</option></select></div>
-</div><label class="text-muted small mb-1">Área</label><select id="hor-4" class="form-select mb-2"><option value="">Cargando áreas...</option></select><label class="text-muted small mb-1">Docente Asignado</label><select id="hor-5" class="form-select mb-2"><option value="">Cargando docentes...</option></select><div class="row g-2 mb-3"><div class="col"><label class="text-muted small mb-1">Hora Inicio</label><input type="time" id="hor-6" class="form-control"></div><div class="col"><label class="text-muted small mb-1">Hora Fin</label><input type="time" id="hor-7" class="form-control"></div></div><div id="msg-Horarios" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Horarios" class="btn btn-primary" onclick="guardarDato('Horarios', ['hor-0','hor-1','hor-2','hor-3','hor-4','hor-5','hor-6','hor-7'])">Guardar</button></div></div></div></div>
+</div><label class="text-muted small mb-1">Área</label><select id="hor-4" class="form-select mb-2"><option value="">Cargando áreas...</option></select><label class="text-muted small mb-1">Docente Asignado</label><select id="hor-5" class="form-select mb-2"><option value="">Cargando docentes...</option></select><div class="row g-2 mb-3"><div class="col"><label class="text-muted small mb-1">Hora Inicio</label><input type="time" id="hor-6" class="form-control"></div><div class="col"><label class="text-muted small mb-1">Hora Fin</label><input type="time" id="hor-7" class="form-control"></div></div><label class="text-muted small mb-1">Estado</label><select id="hor-8" class="form-select mb-3"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select><div id="msg-Horarios" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Horarios" class="btn btn-primary" onclick="guardarDato('Horarios', ['hor-0','hor-1','hor-2','hor-3','hor-4','hor-5','hor-6','hor-7','hor-8'])">Guardar</button></div></div></div></div>
     
     <div class="modal fade" id="modal-Feriados" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="fa-solid fa-calendar-day"></i> Nuevo Feriado</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="fer-0"><label class="text-muted small mb-1">Fecha del Feriado</label><input type="date" id="fer-1" class="form-control mb-3"><label class="text-muted small mb-1">Motivo / Descripción</label><input type="text" id="fer-2" class="form-control mb-2" placeholder="Ej: Día del Maestro"><div id="msg-Feriados" class="text-center fw-bold"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btn-form-Feriados" class="btn btn-danger" onclick="guardarDato('Feriados', ['fer-0','fer-1','fer-2'])">Guardar</button></div></div></div></div>
     <div class="modal fade" id="modal-Estudiantes" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-solid fa-user-graduate"></i> Estudiante</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="est-0" class="form-control mb-2" placeholder="DNI (8 dígitos)" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '');"><input type="text" id="est-1" class="form-control mb-2" placeholder="Nombres Completos"><div class="row g-2 mb-2"><div class="col"><input type="text" id="est-2" class="form-control" placeholder="Grado (Ej: 3ro)"></div><div class="col"><input type="text" id="est-3" class="form-control" placeholder="Sección (Ej: B)"></div></div><div class="row g-2 mb-2">
@@ -12837,7 +12899,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -13479,7 +13542,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -13515,6 +13578,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
@@ -14191,18 +14261,28 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             let fGen = document.getElementById('filtro-est-genero').value;
             let count = 0;
 
-            document.querySelectorAll('#tb-Estudiantes tr').forEach(tr => {
-                if(tr.children.length > 2) { 
-                    let dni = tr.children[0].innerText.toLowerCase();
-                    let nombres = tr.children[1].innerText.toLowerCase();
-                    let gradoSec = tr.children[2].innerText.toLowerCase(); 
-                    let genero = normalizarGenero(tr.children[5].innerText);
-                    let ano = tr.children[6].innerText;
+            // Ocultar todos los encabezados inicialmente
+            document.querySelectorAll('#tb-Estudiantes .group-header').forEach(h => h.style.display = 'none');
 
-                    if(dni.includes(fDni) && nombres.includes(fNom) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec)) && (fAno === "" || ano === fAno) && (fGen === "" || genero === fGen)) { 
-                        tr.style.display = ''; count++; 
-                    } else { tr.style.display = 'none'; } 
-                }
+            document.querySelectorAll('#tb-Estudiantes .student-row').forEach(tr => {
+                let dni = tr.children[0].innerText.toLowerCase();
+                let nombres = tr.children[1].innerText.toLowerCase();
+                let gradoSec = tr.children[2].innerText.toLowerCase(); 
+                let genero = normalizarGenero(tr.children[5].innerText);
+                let ano = tr.children[6].innerText;
+
+                if(dni.includes(fDni) && nombres.includes(fNom) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec)) && (fAno === "" || ano === fAno) && (fGen === "" || genero === fGen)) { 
+                    tr.style.display = ''; 
+                    count++; 
+                    // Mostrar el encabezado de este grupo
+                    let groupId = Array.from(tr.classList).find(c => c.startsWith('group-'));
+                    if(groupId) {
+                        let header = document.querySelector(`.group-header[data-group-id="${groupId}"]`);
+                        if(header) header.style.display = '';
+                    }
+                } else { 
+                    tr.style.display = 'none'; 
+                } 
             });
             let cb = document.getElementById('count-Estudiantes');
             if(cb) cb.innerText = 'Total: ' + count;
@@ -14981,8 +15061,6 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
 
                 if(hoja === 'Estudiantes' || hoja === 'Docentes') actualizarSelectAnos();
 
-                let arrayAVisualizar = (hoja === 'Registro_Asistencia' || hoja === 'Asistencia_Auxiliar' || hoja === 'Asistencia_Docentes') ? [...datosArray].reverse() : datosArray;
-
                 // MOTOR DE PERMISOS POR CELDA
                 const mapHojasPermisos = {
                     'Estudiantes': 'Estudiantes', 'Registro_Asistencia': 'RegEst', 'Incidencias': 'Incidencias',
@@ -14992,6 +15070,65 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                 };
                 let permisoKey = mapHojasPermisos[hoja];
                 let nivelPermiso = (rolActual === 'Administrador') ? 'RW' : (window.permisosUsuario[permisoKey] || 'N');
+                let displayAcciones = (nivelPermiso === 'N') ? 'd-none' : '';
+
+                if(hoja === 'Estudiantes') {
+                    // Agrupar estudiantes por Grado, Sección y Año
+                    let grupos = {};
+                    datosArray.forEach(fila => {
+                        let grado = String(fila[2] || "Sin Grado").trim();
+                        let seccion = String(fila[3] || "S/S").trim();
+                        let ano = String(fila[7] || "Sin Año").trim();
+                        let key = `${grado}|${seccion}|${ano}`;
+                        if(!grupos[key]) grupos[key] = [];
+                        grupos[key].push(fila);
+                    });
+
+                    // Ordenar las llaves de los grupos
+                    let keysOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b));
+
+                    keysOrdenadas.forEach(key => {
+                        let partes = key.split('|');
+                        let grado = partes[0], seccion = partes[1], ano = partes[2];
+                        let estudiantesGrupo = grupos[key];
+                        let groupId = 'group-' + key.replace(/[^a-zA-Z0-9]/g, '-');
+
+                        // Fila de encabezado de grupo
+                        let trHead = document.createElement('tr');
+                        trHead.className = 'table-secondary fw-bold group-header cursor-pointer';
+                        trHead.dataset.groupId = groupId;
+                        trHead.onclick = () => {
+                            let rows = document.querySelectorAll('.' + groupId);
+                            let isHidden = rows.length > 0 && rows[0].classList.contains('d-none');
+                            rows.forEach(r => r.classList.toggle('d-none', !isHidden));
+                            let icon = trHead.querySelector('.toggle-icon');
+                            if(isHidden) icon.classList.replace('fa-chevron-right', 'fa-chevron-down');
+                            else icon.classList.replace('fa-chevron-down', 'fa-chevron-right');
+                        };
+
+                        trHead.innerHTML = `<td colspan="10" class="py-2"><i class="fa-solid fa-chevron-down me-2 toggle-icon"></i> <span class="text-primary">${grado} "${seccion}"</span> — Año ${ano} <span class="badge bg-dark ms-2">${estudiantesGrupo.length} estudiantes</span></td>`;
+                        tb.appendChild(trHead);
+
+                        // Filas de estudiantes
+                        estudiantesGrupo.forEach(fila => {
+                            let trEst = document.createElement('tr');
+                            trEst.className = groupId + ' student-row';
+                            let id = fila[0];
+                            
+                            let btnEdit = (nivelPermiso === 'RW') ? `<button class="btn btn-sm btn-outline-primary mx-1 shadow-sm" onclick="prepararEdicion('${hoja}', '${id}')" title="Editar"><i class="fa-solid fa-pen"></i></button>` : '';
+                            let btnDel = (nivelPermiso === 'RW') ? `<button class="btn btn-sm btn-outline-danger mx-1 shadow-sm" onclick="eliminarRegistro('${hoja}', '${id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` : '';
+                            let cellAcciones = `<td class="text-center admin-btn ${displayAcciones}"><div class="d-flex justify-content-center align-items-center">${btnEdit}${btnDel}</div></td>`;
+                            
+                            let cellDescarga = `<td class="text-center"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','${fila[2]}','${fila[3]}','${fila[4]}', '${fila[6] || ''}', '${fila[7] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
+                            
+                            trEst.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[2]} "${fila[3]}"</td><td>${fila[4]}</td><td>${fila[5] || '-'}</td><td>${normalizarGenero(fila[8])}</td><td>${fila[7] || '-'}</td>${cellDescarga}${cellAcciones}`;
+                            tb.appendChild(trEst);
+                        });
+                    });
+                    return; 
+                }
+
+                let arrayAVisualizar = (hoja === 'Registro_Asistencia' || hoja === 'Asistencia_Auxiliar' || hoja === 'Asistencia_Docentes') ? [...datosArray].reverse() : datosArray;
 
                 arrayAVisualizar.forEach(fila => {
                     let tr = document.createElement('tr'); let id = fila[0]; 
@@ -15000,7 +15137,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     let btnDel = (nivelPermiso === 'RW') ? `<button class="btn btn-sm btn-outline-danger mx-1 shadow-sm" onclick="eliminarRegistro('${hoja}', '${id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` : '';
                     let btnEst = ''; 
                     
-                    if(hoja === 'Administradores' || hoja === 'Docentes' || hoja === 'Auxiliares') { 
+                    if(hoja === 'Administradores' || hoja === 'Docentes' || hoja === 'Auxiliares' || hoja === 'Horarios') { 
                         if(nivelPermiso === 'RW' || rolActual === 'Administrador') {
                             btnEst = `<button class="btn btn-sm btn-outline-warning mx-1 shadow-sm" onclick="cambiarEstado('${hoja}', '${id}')" title="Cambiar Estado"><i class="fa-solid fa-power-off"></i></button>`; 
                         }
@@ -15020,7 +15157,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     }
 
                     // SEGURIDAD: Ocultar acciones a Docentes/Auxiliares si no tienen permiso
-                    let displayAcciones = (nivelPermiso === 'N') ? 'd-none' : ''; 
+                    // let displayAcciones = (nivelPermiso === 'N') ? 'd-none' : ''; // Ya definido arriba
                     
                     let btnKey = '';
                     if(rolActual === 'Administrador' && (hoja === 'Docentes' || hoja === 'Auxiliares')) {
@@ -15029,19 +15166,26 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     let cellAcciones = `<td class="text-center admin-btn ${displayAcciones}"><div class="d-flex justify-content-center align-items-center">${btnEdit}${btnKey}${btnEst}${btnDel}</div></td>`;
 
+                    const getBadgeEstado = (val) => {
+                        let v = String(val || "Activo").trim().toUpperCase();
+                        let bClass = (v === 'INACTIVO') ? 'bg-danger' : 'bg-success';
+                        return `<span class="badge ${bClass}">${v === 'INACTIVO' ? 'Inactivo' : 'Activo'}</span>`;
+                    };
 
-                    if(hoja === 'Administradores') tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td><span class="badge ${fila[4]=='Activo'?'bg-success':'bg-danger'}">${fila[4]}</span></td>${cellAcciones}`;
+                    if(hoja === 'Administradores') tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${getBadgeEstado(fila[4])}</td>${cellAcciones}`;
                     
                     if(hoja === 'Docentes') {
                         let cellDescarga = `<td class="text-center admin-btn ${displayAcciones}"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','Personal Docente','','${fila[3]}', '', '${fila[7] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
-                        tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[3]}</td><td>${fila[4]}</td><td>${fila[7] || '-'}</td><td><span class="badge ${fila[5]=='Activo'?'bg-success':'bg-danger'}">${fila[5]}</span></td>${cellDescarga}${cellAcciones}`;
+                        tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[3]}</td><td>${fila[4]}</td><td>${fila[7] || '-'}</td><td>${getBadgeEstado(fila[5])}</td>${cellDescarga}${cellAcciones}`;
                     }
 
-                    if(hoja === 'Auxiliares') tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td class="text-muted">••••••</td><td>${fila[3]}</td><td>${fila[4]}</td><td>${fila[5]}</td><td><span class="badge ${fila[6]=='Activo'?'bg-success':'bg-danger'}">${fila[6]}</span></td>${cellAcciones}`;
+                    if(hoja === 'Auxiliares') tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td class="text-muted">••••••</td><td>${fila[3]}</td><td>${fila[4]}</td><td>${fila[5]}</td><td>${getBadgeEstado(fila[6])}</td>${cellAcciones}`;
                     if(hoja === 'Areas') tr.innerHTML = `<td class="fw-bold">${fila[0]}</td>${cellAcciones}`;
                     
                     if(hoja === 'Horario_Docentes') tr.innerHTML = `<td class="fw-bold text-primary">${fila[1]}</td><td>${fila[2]}</td><td>${fila[3]}</td><td>${fila[4]}</td><td>${fila[5]}</td>${cellAcciones}`;
-                    if(hoja === 'Horarios') tr.innerHTML = `<td class="fw-bold text-primary">${fila[1]}</td><td>${fila[2]} "${fila[3]}"</td><td>${fila[4]}</td><td>${fila[5]}</td><td>${fila[6]}</td><td>${fila[7]}</td>${cellAcciones}`;
+                    if(hoja === 'Horarios') {
+                        tr.innerHTML = `<td class="fw-bold text-primary">${fila[1]}</td><td>${fila[2]} "${fila[3]}"</td><td>${fila[4]}</td><td>${fila[5]}</td><td>${fila[6]}</td><td>${fila[7]}</td><td>${getBadgeEstado(fila[8])}</td>${cellAcciones}`;
+                    }
                     
                     if(hoja === 'Feriados') {
                         let fStr = fila[1];
@@ -15074,10 +15218,6 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                         tr.innerHTML = `<td class="fw-bold">${fStr}</td><td>${fila[2]}</td><td>${fila[3]}</td><td>${fila[4]}</td><td><span class="badge ${bClass}">${fila[5]}</span></td><td class="text-warning fw-bold">${fila[6] !== "0" ? fila[6] : "-"}</td><td class="text-danger fw-bold">${fila[7] !== "0" ? fila[7] : "-"}</td><td><span class="badge bg-dark">${regPor}</span></td>${cellAcciones}`;
                     }
 
-                    if(hoja === 'Estudiantes') {
-                        let cellDescarga = `<td class="text-center"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','${fila[2]}','${fila[3]}','${fila[4]}', '${fila[6] || ''}', '${fila[7] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
-                        tr.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[2]} "${fila[3]}"</td><td>${fila[4]}</td><td>${fila[5] || '-'}</td><td>${normalizarGenero(fila[8])}</td><td>${fila[7] || '-'}</td>${cellDescarga}${cellAcciones}`;
-                    }
                     if(hoja === 'Incidencias') {
                         let fStr = fila[2] || fila[1]; // Fecha incidente o Fecha Registro
                         if(typeof fStr === 'string' && fStr.includes('T')) { let p = fStr.split('T')[0].split('-'); fStr = p[2] + '/' + p[1] + '/' + p[0]; }
@@ -15366,7 +15506,17 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(hoja === 'Asistencia_Docentes') prefix = 'adc';
             if(hoja === 'Horario_Docentes') prefix = 'hdc'; if(hoja === 'Incidencias') prefix = 'inc';
             
-            for(let i=0; i<10; i++){ let input = document.getElementById(`${prefix}-${i}`); if(input && !input.disabled && input.tagName !== 'SELECT') input.value = ''; }
+            for(let i=0; i<10; i++){ 
+                let input = document.getElementById(`${prefix}-${i}`); 
+                if(input && !input.disabled) {
+                    if(input.tagName === 'SELECT') {
+                        if(hoja === 'Horarios' && i === 8) input.value = 'Activo';
+                        else input.value = ''; 
+                    } else {
+                        input.value = '';
+                    }
+                }
+            }
             let fileInputEst = document.getElementById('est-foto-input'); if(fileInputEst) fileInputEst.value = '';
             let ms = document.getElementById('msg-'+hoja); if(ms) ms.innerHTML = '';
         }
@@ -15449,7 +15599,28 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(r.exito) { cargarTabla(hoja); } else { alert(r.mensaje); } 
         }
 
-        async function cambiarEstado(hoja, id) { if(!confirm(`¿Cambiar estado de acceso?`)) return; let r = await fetchAPI({ accion: 'cambiarEstado', hoja: hoja, id: id }); if(r.exito) { cargarTabla(hoja); } else { alert(r.mensaje); } }
+        async function cambiarEstado(hoja, id) { 
+            if(!confirm(`¿Deseas cambiar el estado de este registro?`)) return; 
+            
+            // CORRECCIÓN ESPECÍFICA PARA HORARIOS:
+            // Usamos la acción 'editarRegistro' para forzar que el cambio ocurra exactamente en la Columna I (index 8)
+            if(hoja === 'Horarios') {
+                let fila = (datosMemoria['Horarios'] || []).find(f => String(f[0]) === String(id));
+                if(fila) {
+                    let nuevosDatos = [...fila];
+                    let estadoActual = String(nuevosDatos[8] || "Activo").trim().toUpperCase();
+                    nuevosDatos[8] = (estadoActual === 'ACTIVO' || estadoActual === "") ? 'Inactivo' : 'Activo';
+                    
+                    let r = await fetchAPI({ accion: 'editarRegistro', hoja: 'Horarios', idActual: id, datos: nuevosDatos });
+                    if(r.exito) { cargarTabla(hoja); } else { alert(r.mensaje); }
+                    return;
+                }
+            }
+
+            // Para las demás hojas seguimos usando la acción estándar
+            let r = await fetchAPI({ accion: 'cambiarEstado', hoja: hoja, id: id }); 
+            if(r.exito) { cargarTabla(hoja); } else { alert(r.mensaje); } 
+        }
         
         function abrirModalMasivo(hoja) { document.getElementById('hoja-masivo').value = hoja; document.getElementById('file-masivo').value = ""; document.getElementById('msg-Masivo').innerHTML = ""; bootstrap.Modal.getOrCreateInstance(document.getElementById('modalMasivo')).show(); }
 
@@ -17333,7 +17504,8 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     
                     if(grado && seccion) {
                         datosHorarios.forEach(h => {
-                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion) {
+                            let estadoH = String(h[8] || "Activo").trim().toUpperCase();
+                            if(String(h[2]).trim() === grado && String(h[3]).trim() === seccion && estadoH !== 'INACTIVO') {
                                 horariosEstudiante.push({
                                     dia: String(h[1]).trim().toUpperCase(),
                                     area: String(h[4] || '').trim(),
@@ -17975,7 +18147,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             document.querySelectorAll('.admin-btn, .admin-doc-btn, .admin-only, .menu-admin, .menu-docente, .menu-auxiliar, .menu-qr').forEach(el => el.classList.add('d-none'));
 
             const configModulos = {
-                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container' },
+                'Estudiantes': { links: ['link-estudiantes'], padre: 'menu-docente-container', btnAdd: 'btn-add-estudiante', btnExtra: 'btn-upload-estudiante' },
                 'RegEst': { links: ['link-reg-est'], padre: 'menu-docente-container' },
                 'Incidencias': { links: ['link-incidencias'], padre: 'menu-docente-container', btnAdd: 'btn-add-incidencia' },
                 'RepEst': { links: ['link-rep-est'], padre: 'menu-docente-container' },
@@ -18011,6 +18183,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     // Mostrar botones de control total si aplica
                     if(conf.btnAdd) {
                         let b = document.getElementById(conf.btnAdd);
+                        if(b) {
+                            if(nivel === 'RW') b.classList.remove('d-none');
+                            else b.classList.add('d-none');
+                        }
+                    }
+                    if(conf.btnExtra) {
+                        let b = document.getElementById(conf.btnExtra);
                         if(b) {
                             if(nivel === 'RW') b.classList.remove('d-none');
                             else b.classList.add('d-none');
