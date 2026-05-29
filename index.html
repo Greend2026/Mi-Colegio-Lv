@@ -10793,7 +10793,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
         
         /* ESTILOS REPORTE MATRICIAL */
-        .tabla-matricial { border: 3px solid black !important; width: 100%; min-width: max-content; }
+        .tabla-matricial { border: 3px solid black !important; width: auto; min-width: max-content; margin: 0 auto; }
         .tabla-matricial th, .tabla-matricial td { border: 2px solid black !important; padding: 4px; vertical-align: middle; color: black; font-size: 0.9rem;}
         .tabla-matricial thead th { font-weight: bold; background-color: white; border-bottom: 3px solid black !important; }
         
@@ -10917,6 +10917,12 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
     </style>
 </head>
 <body>
+    <div id="bg-loader-status" class="d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 6px; z-index: 99999; background: rgba(0,0,0,0.1); overflow: hidden;">
+        <div class="progress-bar bg-danger" style="width: 0%; height: 100%; transition: width 0.4s ease-out; box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);"></div>
+        <div style="position: absolute; top: 10px; right: 15px; font-size: 11px; font-weight: 900; color: #dc3545; background: white; padding: 4px 10px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid #dc3545; pointer-events: none;">
+            <i class="fa-solid fa-cloud-arrow-down fa-bounce me-1"></i> <span id="bg-loader-text">OPTIMIZANDO CARNETS...</span>
+        </div>
+    </div>
 
     <div id="login-section">
         <div class="login-card">
@@ -11546,7 +11552,16 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
 
             <div id="v-estudiante" class="vista-modulo d-none">
                 <div class="d-flex justify-content-between mb-3 align-items-center flex-wrap gap-2">
-                    <h5 class="mb-0 fw-bold">Lista de Estudiantes</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <h5 class="mb-0 fw-bold">Lista de Estudiantes</h5>
+                        <!-- Barra de carga progresiva en el menu -->
+                        <div id="est-progress-container" class="d-none" style="width: 150px;">
+                            <div class="progress" style="height: 10px; border-radius: 5px;">
+                                <div id="est-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0%;"></div>
+                            </div>
+                            <span id="est-progress-text" style="font-size: 9px; font-weight: bold;" class="text-success">0%</span>
+                        </div>
+                    </div>
                     <div class="d-flex align-items-center gap-1">
                         <button class="btn btn-success fw-bold shadow-sm" onclick="exportarExcel('Estudiantes')"><i class="fa-solid fa-file-excel"></i> Excel</button>
                         <button class="btn btn-danger fw-bold shadow-sm" onclick="abrirModalDescargaCarnets()"><i class="fa-solid fa-file-pdf"></i> PDF Carnets</button>
@@ -11738,22 +11753,22 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     <button class="btn btn-outline-primary fw-bold" onclick="window.print()"><i class="fa-solid fa-print"></i> Generar Reporte</button>
                 </div>
                 
-                <div id="filtro-reporte-bar" class="p-2 mb-4 d-flex align-items-center justify-content-between flex-wrap d-print-none" style="border: 2px solid black; border-radius: 35px; background-color: #ffffff; max-width: 950px; margin: 0 auto;">
+                <div id="filtro-reporte-bar" class="p-2 mb-4 d-flex align-items-center justify-content-between flex-wrap d-print-none" style="border: 2px solid black; border-radius: 35px; background-color: #ffffff; width: fit-content; max-width: 1000px; margin: 0 auto;">
                     <div class="d-flex align-items-center">
                         <span class="text-danger fw-bold me-2 ms-2" style="font-size: 0.95rem;">Inicio:</span>
-                        <input type="date" id="rep-finicio" class="form-control text-danger fw-bold" style="border-radius: 20px; width: 140px; border: 1px solid #ccc; font-size: 0.9rem;">
+                        <input type="date" id="rep-finicio" class="form-control text-danger fw-bold" style="border-radius: 20px; width: auto; border: 1px solid #ccc; font-size: 0.9rem;">
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="text-danger fw-bold me-2 ms-2" style="font-size: 0.95rem;">Fin:</span>
-                        <input type="date" id="rep-ffin" class="form-control text-danger fw-bold" style="border-radius: 20px; width: 140px; border: 1px solid #ccc; font-size: 0.9rem;">
+                        <input type="date" id="rep-ffin" class="form-control text-danger fw-bold" style="border-radius: 20px; width: auto; border: 1px solid #ccc; font-size: 0.9rem;">
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="fw-bold me-2 text-dark ms-2" style="font-size: 0.95rem;">Area:</span>
-                        <select id="rep-area" class="form-select fw-bold text-dark" style="border-radius: 20px; width: 150px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Seleccionar</option></select>
+                        <select id="rep-area" class="form-select fw-bold text-dark" style="border-radius: 20px; width: auto; min-width: 120px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Seleccionar</option></select>
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="fw-bold me-2 text-dark text-center ms-2" style="font-size: 10px; line-height: 1;">GRADO Y<br>SEC.</span>
-                        <select id="rep-grado" class="form-select fw-bold text-dark" style="border-radius: 20px; width: 130px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Seleccionar</option></select>
+                        <select id="rep-grado" class="form-select fw-bold text-dark" style="border-radius: 20px; width: auto; min-width: 120px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Seleccionar</option></select>
                     </div>
                     <button class="btn fw-bold text-dark ms-2 me-1" style="background-color: #ffc107; border-radius: 20px; padding: 6px 30px; font-size: 0.95rem;" onclick="generarReporteMatricial('general')">Buscar</button>
                 </div>
@@ -11782,18 +11797,18 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     <button class="btn btn-outline-success fw-bold" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
                 </div>
                 
-                <div id="filtro-reporte-aux-bar" class="p-2 mb-4 d-flex align-items-center justify-content-between flex-wrap d-print-none" style="border: 2px solid black; border-radius: 35px; background-color: #ffffff; max-width: 800px; margin: 0 auto;">
+                <div id="filtro-reporte-aux-bar" class="p-2 mb-4 d-flex align-items-center justify-content-between flex-wrap d-print-none" style="border: 2px solid black; border-radius: 35px; background-color: #ffffff; width: fit-content; max-width: 900px; margin: 0 auto;">
                     <div class="d-flex align-items-center">
                         <span class="text-danger fw-bold me-2 ms-3" style="font-size: 0.95rem;">Inicio:</span>
-                        <input type="date" id="rep-aux-finicio" class="form-control text-danger fw-bold" style="border-radius: 20px; width: 140px; border: 1px solid #ccc; font-size: 0.9rem;">
+                        <input type="date" id="rep-aux-finicio" class="form-control text-danger fw-bold" style="border-radius: 20px; width: auto; border: 1px solid #ccc; font-size: 0.9rem;">
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="text-danger fw-bold me-2 ms-3" style="font-size: 0.95rem;">Fin:</span>
-                        <input type="date" id="rep-aux-ffin" class="form-control text-danger fw-bold" style="border-radius: 20px; width: 140px; border: 1px solid #ccc; font-size: 0.9rem;">
+                        <input type="date" id="rep-aux-ffin" class="form-control text-danger fw-bold" style="border-radius: 20px; width: auto; border: 1px solid #ccc; font-size: 0.9rem;">
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="fw-bold me-2 text-dark text-center ms-3" style="font-size: 10px; line-height: 1;">GRADO Y<br>SEC.</span>
-                        <select id="rep-aux-grado" class="form-select fw-bold text-dark" style="border-radius: 20px; width: 140px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Seleccionar</option></select>
+                        <select id="rep-aux-grado" class="form-select fw-bold text-dark" style="border-radius: 20px; width: auto; min-width: 120px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Seleccionar</option></select>
                     </div>
                     <button class="btn fw-bold text-dark ms-2 me-1" style="background-color: #ffc107; border-radius: 20px; padding: 6px 35px; font-size: 0.95rem;" onclick="generarReporteMatricial('auxiliar')">Buscar</button>
                 </div>
@@ -11824,18 +11839,18 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     </div>
                 </div>
                 
-                <div id="filtro-reporte-doc-bar" class="p-2 mb-4 d-flex align-items-center justify-content-between flex-wrap d-print-none" style="border: 2px solid black; border-radius: 35px; background-color: #ffffff; max-width: 900px; margin: 0 auto;">
+                <div id="filtro-reporte-doc-bar" class="p-2 mb-4 d-flex align-items-center justify-content-between flex-wrap d-print-none" style="border: 2px solid black; border-radius: 35px; background-color: #ffffff; width: fit-content; max-width: 1000px; margin: 0 auto;">
                     <div class="d-flex align-items-center">
                         <span class="text-danger fw-bold me-2 ms-3" style="font-size: 0.95rem;">Inicio:</span>
-                        <input type="date" id="rep-doc-finicio" class="form-control text-danger fw-bold" style="border-radius: 20px; width: 140px; border: 1px solid #ccc; font-size: 0.9rem;">
+                        <input type="date" id="rep-doc-finicio" class="form-control text-danger fw-bold" style="border-radius: 20px; width: auto; border: 1px solid #ccc; font-size: 0.9rem;">
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="text-danger fw-bold me-2 ms-3" style="font-size: 0.95rem;">Fin:</span>
-                        <input type="date" id="rep-doc-ffin" class="form-control text-danger fw-bold" style="border-radius: 20px; width: 140px; border: 1px solid #ccc; font-size: 0.9rem;">
+                        <input type="date" id="rep-doc-ffin" class="form-control text-danger fw-bold" style="border-radius: 20px; width: auto; border: 1px solid #ccc; font-size: 0.9rem;">
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="fw-bold me-2 text-dark text-center ms-3" style="font-size: 10px; line-height: 1;">SELECCIONE<br>DOCENTE</span>
-                        <select id="rep-doc-docente" class="form-select fw-bold text-dark" style="border-radius: 20px; width: 220px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Todos los Docentes</option></select>
+                        <select id="rep-doc-docente" class="form-select fw-bold text-dark" style="border-radius: 20px; width: auto; min-width: 180px; border: 1px solid #ccc; font-size: 0.9rem;"><option value="">Todos los Docentes</option></select>
                     </div>
                     <button class="btn fw-bold text-dark ms-2 me-1" style="background-color: #0dcaf0; border-radius: 20px; padding: 6px 35px; font-size: 0.95rem;" onclick="generarReporteDocente()">Buscar</button>
                 </div>
@@ -11877,13 +11892,13 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     <table class="table text-center align-middle tabla-matricial" id="tabla-imprimir-doc">
                         <thead>
                             <tr>
-                                <th style="width: 5%; border: 2px solid black;">N°</th>
-                                <th style="width: 12%; border: 2px solid black;">FECHA</th>
-                                <th class="text-start" style="width: 25%; border: 2px solid black;">NOMBRES DEL DOCENTE</th>
-                                <th class="text-success" style="width: 12%; border: 2px solid black;">H. INGRESO</th>
-                                <th class="text-warning" style="width: 17%; border: 2px solid black;">TARDANZA</th>
-                                <th class="text-secondary" style="width: 12%; border: 2px solid black;">H. SALIDA</th>
-                                <th class="text-danger" style="width: 17%; border: 2px solid black;">SALIDA TEMP.</th>
+                                <th style="width: auto; border: 2px solid black;">N°</th>
+                                <th style="width: auto; border: 2px solid black;">FECHA</th>
+                                <th class="text-start" style="width: auto; border: 2px solid black;">NOMBRES DEL DOCENTE</th>
+                                <th class="text-success" style="width: auto; border: 2px solid black;">H. INGRESO</th>
+                                <th class="text-warning" style="width: auto; border: 2px solid black;">TARDANZA</th>
+                                <th class="text-secondary" style="width: auto; border: 2px solid black;">H. SALIDA</th>
+                                <th class="text-danger" style="width: auto; border: 2px solid black;">SALIDA TEMP.</th>
                             </tr>
                         </thead>
                         <tbody id="tb-ReporteMatricialDoc"><tr><td colspan="7" class="text-muted py-5 fw-bold border border-dark">Selecciona Rango de Fechas y Docente, luego presiona "Buscar".</td></tr></tbody>
@@ -12145,7 +12160,10 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted"><i class="fa-solid fa-venus-mars me-1"></i> GÉNERO:</label>
+                        <label class="form-label fw-bold small text-muted d-flex justify-content-between">
+                            <span><i class="fa-solid fa-venus-mars me-1"></i> GÉNERO:</span>
+                            <span id="gen-loading-anim" class="d-none text-danger small"><i class="fa-solid fa-spinner fa-spin"></i> Cargando carnets...</span>
+                        </label>
                         <select id="select-genero-pdf-modal" class="form-select border-danger fw-bold py-2 shadow-sm" style="border-radius: 10px;">
                             <option value="TODOS">TODOS LOS GÉNEROS</option>
                             <option value="Hombre">HOMBRE</option>
@@ -12156,15 +12174,26 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     <div class="mb-4">
                         <label class="form-label fw-bold small text-muted"><i class="fa-solid fa-arrows-rotate me-1"></i> ORIENTACIÓN:</label>
                         <select id="select-orientacion-pdf-modal" class="form-select border-danger fw-bold py-2 shadow-sm" style="border-radius: 10px;">
-                            <option value="horizontal">HORIZONTAL (DNI)</option>
-                            <option value="vertical">VERTICAL (FOTOMANSET)</option>
+                            <option value="horizontal">10 CARNETS (TAMAÑO DNI OPTIMIZADO)</option>
+                            <option value="vertical">9 CARNETS (FORMA DNI VERTICAL)</option>
+                            <option value="8-horizontal">8 CARNETS (MÁXIMO TAMAÑO SIN DEFORMAR)</option>
                         </select>
                     </div>
 
-                    <div class="d-grid">
+                    <div class="d-grid mb-3">
                         <button id="btn-descarga-pdf-masiva" class="btn btn-danger btn-lg fw-bold shadow-sm py-2" onclick="ejecutarDescargaMasivaModal()" style="border-radius: 12px;">
                             <i class="fa-solid fa-cloud-arrow-down me-2"></i>GENERAR CARNETS
                         </button>
+                    </div>
+
+                    <div id="progress-container-pdf" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-danger" id="progress-text-pdf">Generando: 0%</span>
+                            <span class="small text-muted" id="progress-count-pdf">0 / 0</span>
+                        </div>
+                        <div class="progress" style="height: 15px; border-radius: 10px; background-color: #f8d7da;">
+                            <div id="progress-bar-pdf" class="progress-bar progress-bar-striped progress-bar-animated bg-danger" role="progressbar" style="width: 0%;"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-0 py-2" style="border-radius: 0 0 20px 20px;">
@@ -13747,8 +13776,86 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycbzfBr8xjypoJKf9hyTzEH9uGuE0hxcQnQc37wxeWAVlreuiWEPMqWOspSDRKY2y99Nz/exec";
 
-        let datosMemoria = {}; let editandoID = null; let reporteGlobalData = {}; let rolActual = ''; let usuarioDniActual = '';
+        let datosMemoria = {}; let fotosCache = {}; let qrsCache = {}; let editandoID = null; let reporteGlobalData = {}; let rolActual = ''; let usuarioDniActual = '';
         let targetPDFDownload = '';
+
+        async function prefetchFotos() {
+            let listaCarga = [];
+            // Estudiantes (Columna 0 es DNI, 2 es Grado, 3 es Sección, 6 es foto)
+            if(datosMemoria['Estudiantes']) {
+                let estudiantesOrdenados = [...datosMemoria['Estudiantes']].sort((a, b) => {
+                    let gA = String(a[2] || ""), gB = String(b[2] || "");
+                    if (gA !== gB) return gA.localeCompare(gB, undefined, {numeric: true, sensitivity: 'base'});
+                    return String(a[3] || "").localeCompare(String(b[3] || ""));
+                });
+                estudiantesOrdenados.forEach(e => { if(e[6] && e[6].trim() !== "") listaCarga.push({ dni: e[0], url: e[6] }); });
+            }
+            // Docentes (Columna 0 es DNI, 6 es foto)
+            if(datosMemoria['Docentes']) {
+                datosMemoria['Docentes'].forEach(d => { if(d[6] && d[6].trim() !== "") listaCarga.push({ dni: d[0], url: d[6] }); });
+            }
+            
+            if(listaCarga.length === 0) return;
+            
+            let bgLoader = document.getElementById('bg-loader-status');
+            let bgText = document.getElementById('bg-loader-text');
+            let estProgCont = document.getElementById('est-progress-container');
+            let estProgBar = document.getElementById('est-progress-bar');
+            let estProgText = document.getElementById('est-progress-text');
+            let genAnim = document.getElementById('gen-loading-anim');
+
+            if(bgLoader) bgLoader.classList.remove('d-none');
+            if(estProgCont) estProgCont.classList.remove('d-none');
+            if(genAnim) genAnim.classList.remove('d-none');
+            if(bgText) bgText.innerText = `PRE-CARGANDO ${listaCarga.length} FOTOS...`;
+
+            const concurrency = 15;
+            for (let i = 0; i < listaCarga.length; i += concurrency) {
+                let chunk = listaCarga.slice(i, i + concurrency);
+                await Promise.all(chunk.map(async (item) => {
+                    if (fotosCache[item.url]) {
+                        actualizarStatusBoton(item.dni, '100%');
+                        return;
+                    }
+                    try {
+                        actualizarStatusBoton(item.dni, '20%'); // Iniciando
+                        let r = await fetchAPI({ accion: 'obtenerBase64', url: item.url });
+                        if (r.exito && r.base64) { 
+                            actualizarStatusBoton(item.dni, '70%'); // Descargado
+                            fotosCache[item.url] = r.base64; 
+                            setTimeout(() => actualizarStatusBoton(item.dni, '100%'), 100); // Listo
+                        } else {
+                            actualizarStatusBoton(item.dni, 'Error');
+                        }
+                    } catch (e) { 
+                        actualizarStatusBoton(item.dni, 'Error');
+                    }
+                }));
+                
+                let perc = Math.round(((i + chunk.length) / listaCarga.length) * 100);
+                if(bgLoader) bgLoader.querySelector('.progress-bar').style.width = perc + '%';
+                if(estProgBar) estProgBar.style.width = perc + '%';
+                if(estProgText) estProgText.innerText = perc + '%';
+            }
+            
+            if(bgText) bgText.innerText = "SISTEMA LISTO - CARNETS OPTIMIZADOS";
+            setTimeout(() => { 
+                if(bgLoader) bgLoader.classList.add('d-none'); 
+                if(estProgCont) estProgCont.classList.add('d-none');
+                if(genAnim) genAnim.classList.add('d-none');
+            }, 3000);
+        }
+
+        function actualizarStatusBoton(dni, status) {
+            let badge = document.getElementById(`status-dni-${dni}`);
+            if(badge) {
+                badge.innerText = status;
+                if(status === '100%') {
+                    badge.classList.remove('bg-secondary');
+                    badge.classList.add('bg-success');
+                }
+            }
+        }
 
         function extraerMinutosJS(valor) {
             if (!valor) return -1;
@@ -13996,6 +14103,9 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     hojasBackground.forEach((h, i) => {
                         if(resultados[i].exito) datosMemoria[h] = resultados[i].datos || [];
                     });
+
+                    // Iniciar pre-carga de fotos una vez que tenemos los datos de estudiantes
+                    prefetchFotos();
 
                     // Procesar Logo (último elemento del array de resultados)
                     let rLogo = resultados[resultados.length - 1];
@@ -14252,7 +14362,17 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             return "Sin definir";
         }
 
-        function filtrarEstudiantes() {
+        // --- OPTIMIZACIÓN DE FILTROS ---
+        let timeoutFiltro = null;
+        function debounce(func, delay) {
+            return function() {
+                const context = this; const args = arguments;
+                clearTimeout(timeoutFiltro);
+                timeoutFiltro = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        const filtrarEstudiantesRapido = debounce(() => {
             let fDni = document.getElementById('buscar-dni').value.toLowerCase().trim();
             let fNom = document.getElementById('buscar-nombre').value.toLowerCase().trim();
             let fGrado = document.getElementById('buscar-grado').value.toLowerCase().trim();
@@ -14261,56 +14381,67 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             let fGen = document.getElementById('filtro-est-genero').value;
             let count = 0;
 
-            // Ocultar todos los encabezados inicialmente
-            document.querySelectorAll('#tb-Estudiantes .group-header').forEach(h => h.style.display = 'none');
+            const rows = document.querySelectorAll('#tb-Estudiantes .student-row');
+            const headers = document.querySelectorAll('#tb-Estudiantes .group-header');
 
-            document.querySelectorAll('#tb-Estudiantes .student-row').forEach(tr => {
-                let dni = tr.children[0].innerText.toLowerCase();
-                let nombres = tr.children[1].innerText.toLowerCase();
-                let gradoSec = tr.children[2].innerText.toLowerCase(); 
-                let genero = normalizarGenero(tr.children[5].innerText);
-                let ano = tr.children[6].innerText;
+            // Ocultar todos los encabezados inicialmente (usar display none)
+            headers.forEach(h => h.classList.add('d-none'));
 
-                if(dni.includes(fDni) && nombres.includes(fNom) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec)) && (fAno === "" || ano === fAno) && (fGen === "" || genero === fGen)) { 
-                    tr.style.display = ''; 
-                    count++; 
-                    // Mostrar el encabezado de este grupo
+            let visibleGroups = new Set();
+
+            rows.forEach(tr => {
+                let dni = tr.children[0].textContent.toLowerCase();
+                let nombres = tr.children[1].textContent.toLowerCase();
+                let gradoSec = tr.children[2].textContent.toLowerCase();
+                let genero = normalizarGenero(tr.children[5].textContent);
+                let ano = tr.children[6].textContent;
+
+                if(dni.includes(fDni) && nombres.includes(fNom) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec)) && (fAno === "" || ano === fAno) && (fGen === "" || genero === fGen)) {
+                    tr.classList.remove('d-none');
+                    count++;
                     let groupId = Array.from(tr.classList).find(c => c.startsWith('group-'));
-                    if(groupId) {
-                        let header = document.querySelector(`.group-header[data-group-id="${groupId}"]`);
-                        if(header) header.style.display = '';
-                    }
-                } else { 
-                    tr.style.display = 'none'; 
-                } 
+                    if(groupId) visibleGroups.add(groupId);
+                } else {
+                    tr.classList.add('d-none');
+                }
             });
+
+            // Mostrar solo los encabezados que tienen filas visibles
+            headers.forEach(h => {
+                if(visibleGroups.has(h.dataset.groupId)) h.classList.remove('d-none');
+            });
+
             let cb = document.getElementById('count-Estudiantes');
             if(cb) cb.innerText = 'Total: ' + count;
 
             if(!document.getElementById('dashboard-estudiantes').classList.contains('d-none')) {
                 inicializarGraficosEstudiantes();
             }
-        }
+        }, 150);
 
-        function filtrarDocentes() {
+        // Reemplazar la función original para que los inputs llamen a la versión rápida
+        function filtrarEstudiantes() { filtrarEstudiantesRapido(); }
+        const filtrarDocentesRapido = debounce(() => {
             let fTxt = document.getElementById('buscar-doc-nombre').value.toLowerCase().trim();
             let fAno = document.getElementById('filtro-doc-ano').value;
             let count = 0;
 
             document.querySelectorAll('#tb-Docentes tr').forEach(tr => {
                 if(tr.children.length > 2) { 
-                    let dni = tr.children[0].innerText.toLowerCase();
-                    let nombres = tr.children[1].innerText.toLowerCase();
-                    let ano = tr.children[4].innerText; // En la tabla, Año es la 5ta columna (index 4)
+                    let dni = tr.children[0].textContent.toLowerCase();
+                    let nombres = tr.children[1].textContent.toLowerCase();
+                    let ano = tr.children[4].textContent;
 
-                    if((dni.includes(fTxt) || nombres.includes(fTxt)) && (fAno === "" || ano === fAno)) { 
-                        tr.style.display = ''; count++; 
-                    } else { tr.style.display = 'none'; } 
+                    const match = (dni.includes(fTxt) || nombres.includes(fTxt)) && (fAno === "" || ano === fAno);
+                    tr.classList.toggle('d-none', !match);
+                    if(match) count++;
                 }
             });
             let cb = document.getElementById('count-Docentes');
             if(cb) cb.innerText = 'Total: ' + count;
-        }
+        }, 150);
+
+        function filtrarDocentes() { filtrarDocentesRapido(); }
 
         function abrirModalDescargaCarnets() {
             let selectAno = document.getElementById('select-ano-pdf');
@@ -14350,9 +14481,15 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(!ano) return alert("Por favor, seleccione un año lectivo.");
             
             let btn = document.getElementById('btn-descarga-pdf-masiva');
+            let progCont = document.getElementById('progress-container-pdf');
+            let progBar = document.getElementById('progress-bar-pdf');
+            let progText = document.getElementById('progress-text-pdf');
+            let progCount = document.getElementById('progress-count-pdf');
+
             let originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando PDF...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
             btn.disabled = true;
+            progCont.classList.remove('d-none');
 
             let estudiantes = (datosMemoria['Estudiantes'] || []).filter(e => {
                 let matchAno = String(e[7]) === String(ano);
@@ -14370,42 +14507,85 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             if(estudiantes.length === 0) {
                 alert("No se encontraron estudiantes para los filtros seleccionados.");
                 btn.innerHTML = originalHTML; btn.disabled = false;
+                progCont.classList.add('d-none');
                 return;
             }
 
             try {
                 const { jsPDF } = window.jspdf;
-                let pdf = new jsPDF('p', 'mm', 'a4');
-                let cW, cH, cols, rows;
+                let pdf, cW, cH, cols, rows, marginX, marginY;
 
-                if (formato === 'vertical') {
-                    cW = 54; cH = 85.6; // Tamaño DNI Vertical
-                    cols = 3; rows = 3; // 9 carnets por hoja
+                if (formato === '8-horizontal') {
+                    pdf = new jsPDF('p', 'mm', 'a4');
+                    // Mantener relación de aspecto DNI (1.585)
+                    // Maximizando en ancho: 210/2 = 105mm. Altura: 105/1.585 = 66.24mm
+                    cW = 105; cH = 66.24; cols = 2; rows = 4;
+                } else if (formato === 'vertical') {
+                    pdf = new jsPDF('p', 'mm', 'a4');
+                    // Relación aspecto Vertical: 54/85.6 = 0.63
+                    // Maximizando en alto: 297/3 = 99mm. Ancho: 99*0.63 = 62.37mm
+                    cW = 62.37; cH = 99; cols = 3; rows = 3;
                 } else {
-                    cW = 85.6; cH = 54; // Tamaño DNI Horizontal
-                    cols = 2; rows = 5; // 10 carnets por hoja
+                    pdf = new jsPDF('p', 'mm', 'a4');
+                    // Relación aspecto DNI: 1.585
+                    // Maximizando en alto: 297/5 = 59.4mm. Ancho: 59.4*1.585 = 94.15mm
+                    cW = 94.15; cH = 59.4; cols = 2; rows = 5;
                 }
 
-                let marginX = (210 - (cW * cols)) / 2;
-                let marginY = (297 - (cH * rows)) / 2;
+                marginX = (210 - (cols * cW)) / 2;
+                marginY = (297 - (rows * cH)) / 2;
 
-                for (let i = 0; i < estudiantes.length; i++) {
-                    let e = estudiantes[i];
-                    if (i > 0 && i % (cols * rows) === 0) pdf.addPage();
-                    let col = i % cols, row = Math.floor(i / cols) % rows;
-                    let x = marginX + (col * cW), y = marginY + (row * cH);
-                    let canvas = await generarCanvasCarnet(e[0], e[1], e[2], e[3], e[4], e[6] || '', formato, e[7] || '');
-                    let imgData = canvas.toDataURL("image/jpeg", 0.8);
-                    pdf.addImage(imgData, 'JPEG', x, y, cW, cH);
+                let x = marginX, y = marginY;
+                let count = 0;
+                let total = estudiantes.length;
+
+                // Bloques de 8 para mayor velocidad sin saturar memoria
+                const blockSize = 8;
+                for (let i = 0; i < total; i += blockSize) {
+                    let chunk = estudiantes.slice(i, i + blockSize);
+                    
+                    // Actualizar UI
+                    let perc = Math.round((i / total) * 100);
+                    progBar.style.width = perc + '%';
+                    progText.innerText = `Generando: ${perc}%`;
+                    progCount.innerText = `${i} / ${total}`;
+
+                    let canvases = await Promise.all(chunk.map(e => 
+                        generarCanvasCarnet(e[0], e[1], e[2], e[3], e[4], e[6] || '', formato === '8-horizontal' ? 'horizontal' : formato, e[7] || '')
+                    ));
+
+                    canvases.forEach((canvas, idx) => {
+                        let imgData = canvas.toDataURL("image/jpeg", 0.9);
+                        pdf.addImage(imgData, 'JPEG', x, y, cW, cH);
+                        count++;
+
+                        if (count % (cols * rows) === 0 && (i + idx) < total - 1) {
+                            pdf.addPage();
+                            x = marginX; y = marginY;
+                        } else {
+                            x += cW;
+                            if (count % cols === 0) { x = marginX; y += cH; }
+                        }
+                    });
                 }
-                pdf.save(`Carnets_${formato.toUpperCase()}_${nivel}_${ano}.pdf`);
-                bootstrap.Modal.getInstance(document.getElementById('modalPDF')).hide();
+
+                // Finalizar barra
+                progBar.style.width = '100%';
+                progText.innerText = 'Generando: 100%';
+                progCount.innerText = `${total} / ${total}`;
+
+                setTimeout(() => {
+                    pdf.save(`Carnets_${formato.toUpperCase()}_${nivel}_${ano}.pdf`);
+                    btn.innerHTML = originalHTML; btn.disabled = false;
+                    progCont.classList.add('d-none');
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPDF')).hide();
+                }, 500);
+
             } catch (err) {
                 console.error(err);
-                alert("Error al generar el PDF: " + err.message);
-            } finally {
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
+                alert("Error crítico al generar PDF: " + err.message);
+                btn.innerHTML = originalHTML; btn.disabled = false;
+                progCont.classList.add('d-none');
             }
         }
 
@@ -14424,53 +14604,62 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             poblar('Docentes', 'filtro-doc-ano', 7);
         }
 
-        function filtrarIncidencias() {
+        const filtrarIncidenciasRapido = debounce(() => {
             let fNom = document.getElementById('buscar-inc-txt').value.toLowerCase().trim();
             let fGrado = document.getElementById('buscar-inc-grado').value.toLowerCase().trim();
             let fSec = document.getElementById('buscar-inc-seccion').value.toLowerCase().trim();
             document.querySelectorAll('#tb-Incidencias tr').forEach(tr => {
                 if(tr.children.length > 2) { 
-                    let nom = tr.children[2].innerText.toLowerCase();
-                    let gradoSec = tr.children[3].innerText.toLowerCase();
-                    if((fNom === "" || nom.includes(fNom)) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec))) {
-                        tr.style.display = ''; 
-                    } else { 
-                        tr.style.display = 'none'; 
-                    }
+                    let nom = tr.children[2].textContent.toLowerCase();
+                    let gradoSec = tr.children[3].textContent.toLowerCase();
+                    let match = (fNom === "" || nom.includes(fNom)) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec));
+                    tr.classList.toggle('d-none', !match);
                 }
             });
-        }
+        }, 150);
 
-        function filtrarHorarios() {
+        function filtrarIncidencias() { filtrarIncidenciasRapido(); }
+
+        const filtrarHorariosRapido = debounce(() => {
             let fDia = document.getElementById('buscar-hor-dia').value.toLowerCase().trim(), fGrado = document.getElementById('buscar-hor-grado').value.toLowerCase().trim(), fSec = document.getElementById('buscar-hor-seccion').value.toLowerCase().trim();
             document.querySelectorAll('#tb-Horarios tr').forEach(tr => {
-                if(tr.children.length > 2) { let dia = tr.children[0].innerText.toLowerCase(), gradoSec = tr.children[1].innerText.toLowerCase(); 
-                if((fDia === "" || dia === fDia) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec))) { tr.style.display = ''; } else { tr.style.display = 'none'; } }
+                if(tr.children.length > 2) { 
+                    let dia = tr.children[0].textContent.toLowerCase(), gradoSec = tr.children[1].textContent.toLowerCase(); 
+                    let match = (fDia === "" || dia === fDia) && (fGrado === "" || gradoSec.includes(fGrado)) && (fSec === "" || gradoSec.includes(fSec));
+                    tr.classList.toggle('d-none', !match);
+                }
             });
-        }
+        }, 150);
+
+        function filtrarHorarios() { filtrarHorariosRapido(); }
         
-        function filtrarHorariosDocentes() {
+        const filtrarHorariosDocentesRapido = debounce(() => {
             let fDia = document.getElementById('buscar-hdoc-dia').value.toLowerCase().trim(), fNom = document.getElementById('buscar-hdoc-nom').value.toLowerCase().trim();
             document.querySelectorAll('#tb-Horario_Docentes tr').forEach(tr => {
                 if(tr.children.length > 2) { 
-                    let dia = tr.children[0].innerText.toLowerCase(), nom = tr.children[2].innerText.toLowerCase(); 
-                    if((fDia === "" || dia === fDia) && (fNom === "" || nom.includes(fNom))) { tr.style.display = ''; } else { tr.style.display = 'none'; } 
+                    let dia = tr.children[0].textContent.toLowerCase(), nom = tr.children[2].textContent.toLowerCase(); 
+                    let match = (fDia === "" || dia === fDia) && (fNom === "" || nom.includes(fNom));
+                    tr.classList.toggle('d-none', !match);
                 }
             });
-        }
+        }, 150);
 
-        function filtrarAsistencias(tablaID, inputDniID, inputFechaID) {
+        function filtrarHorariosDocentes() { filtrarHorariosDocentesRapido(); }
+
+        const filtrarAsistenciasRapido = debounce((tablaID, inputDniID, inputFechaID) => {
             let fTex = document.getElementById(inputDniID).value.toLowerCase().trim(), fFecRaw = document.getElementById(inputFechaID).value, fFec = "";
             if(fFecRaw) { let p = fFecRaw.split('-'); fFec = p[2] + '/' + p[1] + '/' + p[0]; }
             document.querySelectorAll('#' + tablaID + ' tr').forEach(tr => {
                 if(tr.children.length > 2) { 
-                    let fecha = tr.children[0].innerText, dni = tr.children[2].innerText.toLowerCase();
-                    let nombres = tablaID === 'tb-Asistencia_Docentes' ? tr.children[3].innerText.toLowerCase() : tr.children[3].innerText.toLowerCase(); 
-                    
-                    if((fTex === "" || dni.includes(fTex) || nombres.includes(fTex)) && (fFec === "" || fecha === fFec)) { tr.style.display = ''; } else { tr.style.display = 'none'; } 
+                    let fecha = tr.children[0].textContent, dni = tr.children[2].textContent.toLowerCase();
+                    let nombres = tr.children[3].textContent.toLowerCase(); 
+                    let match = (fTex === "" || dni.includes(fTex) || nombres.includes(fTex)) && (fFec === "" || fecha === fFec);
+                    tr.classList.toggle('d-none', !match);
                 }
             });
-        }
+        }, 150);
+
+        function filtrarAsistencias(tablaID, inputDniID, inputFechaID) { filtrarAsistenciasRapido(tablaID, inputDniID, inputFechaID); }
 
                 async function abrirModalConsultaAuxiliar() {
             document.getElementById('cons-aux-dni').value = ''; document.getElementById('cons-aux-finicio').value = ''; document.getElementById('cons-aux-ffin').value = ''; document.getElementById('cons-aux-resultados').innerHTML = '';
@@ -14759,12 +14948,12 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             let tbody = document.getElementById(tipoReporte === 'auxiliar' ? 'tb-ReporteMatricialAux' : 'tb-ReporteMatricial');
             
             let trHead = `<tr>
-                <th style="width: 5%; border: 2px solid black;">N°</th>
-                <th class="text-start" style="width: 30%; border: 2px solid black;">APELLIDOS Y NOMBRES</th>
+                <th style="width: auto; border: 2px solid black;">N°</th>
+                <th class="text-start" style="width: auto; border: 2px solid black; white-space: nowrap;">APELLIDOS Y NOMBRES</th>
                 ${fechasRango.map(f => `<th style="width: auto; border: 2px solid black;">${f.diaNum}<br><small>${f.diaLetra}</small></th>`).join('')}
-                <th style="width: 10%; border: 2px solid black;">T. ASIST.</th>
-                <th class="text-danger" style="width: 10%; border: 2px solid black;">FALTAS</th>
-                <th style="width: 15%; border: 2px solid black;">%</th>
+                <th style="width: auto; border: 2px solid black;">T. ASIST.</th>
+                <th class="text-danger" style="width: auto; border: 2px solid black;">FALTAS</th>
+                <th style="width: 120px; border: 2px solid black;">%</th>
             </tr>`;
             tHead.innerHTML = trHead;
             
@@ -15119,7 +15308,9 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                             let btnDel = (nivelPermiso === 'RW') ? `<button class="btn btn-sm btn-outline-danger mx-1 shadow-sm" onclick="eliminarRegistro('${hoja}', '${id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` : '';
                             let cellAcciones = `<td class="text-center admin-btn ${displayAcciones}"><div class="d-flex justify-content-center align-items-center">${btnEdit}${btnDel}</div></td>`;
                             
-                            let cellDescarga = `<td class="text-center"><button class="btn btn-sm btn-dark shadow-sm" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','${fila[2]}','${fila[3]}','${fila[4]}', '${fila[6] || ''}', '${fila[7] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet</button></td>`;
+                            let statusPercent = (fila[6] && fotosCache[fila[6]]) ? '100%' : '0%';
+                            let statusClass = (statusPercent === '100%') ? 'bg-success' : 'bg-secondary';
+                            let cellDescarga = `<td class="text-center"><button class="btn btn-sm btn-dark shadow-sm position-relative" onclick="mostrarCarnetSolo('${fila[0]}','${fila[1]}','${fila[2]}','${fila[3]}','${fila[4]}', '${fila[6] || ''}', '${fila[7] || ''}')"><i class="fa-solid fa-id-card"></i> Ver Carnet <span class="badge ${statusClass} badge-status-carnet" id="status-dni-${fila[0]}" style="font-size: 9px;">${statusPercent}</span></button></td>`;
                             
                             trEst.innerHTML = `<td class="fw-bold">${fila[0]}</td><td>${fila[1]}</td><td>${fila[2]} "${fila[3]}"</td><td>${fila[4]}</td><td>${fila[5] || '-'}</td><td>${normalizarGenero(fila[8])}</td><td>${fila[7] || '-'}</td>${cellDescarga}${cellAcciones}`;
                             tb.appendChild(trEst);
@@ -15315,34 +15506,55 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             let container = document.getElementById('aux-grados-container');
             if (!container) return;
             
-            // Optimización: Usar memoria si ya tenemos los estudiantes
-            let estData = datosMemoria['Estudiantes'] || [];
-            
-            if(estData.length === 0) {
-                container.innerHTML = '<span class="text-muted small"><i class="fa-solid fa-spinner fa-spin"></i> Cargando grados disponibles...</span>';
-                let r = await fetchAPI({accion: 'obtenerDatos', hoja: 'Estudiantes'});
-                if(r.exito) { estData = r.datos; datosMemoria['Estudiantes'] = estData; }
-            }
+            container.innerHTML = '<span class="text-muted small"><i class="fa-solid fa-spinner fa-spin"></i> Cargando grados...</span>';
 
-            if(estData.length > 0) {
+            try {
+                // Asegurar que tenemos datos de estudiantes
+                let estData = datosMemoria['Estudiantes'];
+                if(!estData || estData.length === 0) {
+                    let r = await fetchAPI({accion: 'obtenerDatos', hoja: 'Estudiantes'});
+                    if(r.exito) { 
+                        estData = r.datos || []; 
+                        datosMemoria['Estudiantes'] = estData; 
+                    }
+                }
+
+                if(!estData || estData.length === 0) {
+                    container.innerHTML = '<span class="text-warning small"><i class="fa-solid fa-circle-exclamation"></i> No hay estudiantes registrados.</span>';
+                    return;
+                }
+
                 let gradosSet = new Set();
-                estData.forEach(e => { if(e[2] && e[3]) gradosSet.add(e[2].trim() + ' ' + e[3].trim()); }); 
+                estData.forEach(e => { 
+                    if(e[2] && e[3]) {
+                        let g = String(e[2]).trim();
+                        let s = String(e[3]).trim();
+                        if(g && s) gradosSet.add(g + ' ' + s);
+                    }
+                }); 
+                
                 let gradosArr = Array.from(gradosSet).sort();
                 
+                if(gradosArr.length === 0) {
+                    container.innerHTML = '<span class="text-warning small"><i class="fa-solid fa-triangle-exclamation"></i> No se detectaron grados/secciones en la lista de estudiantes.</span>';
+                    return;
+                }
+
                 let html = '';
-                let selArr = seleccionados.toLowerCase().split(',').map(s=>s.trim());
+                let selArr = seleccionados.toLowerCase().split(',').map(s=>s.trim()).filter(s=>s!=="");
                 
                 gradosArr.forEach(g => {
                     let checked = selArr.includes(g.toLowerCase()) ? 'checked' : '';
-                    let idSeguro = g.replace(/\s+/g, '');
+                    let idSeguro = 'chk-' + g.replace(/[^a-z0-9]/gi, '');
                     html += `<div class="form-check form-check-inline bg-white border rounded px-2 py-1 m-1 shadow-sm">
-                                <input class="form-check-input chk-grado-aux" type="checkbox" value="${g}" id="chk-${idSeguro}" ${checked}>
-                                <label class="form-check-label fw-bold ms-1" style="font-size:0.9rem;" for="chk-${idSeguro}">${g}</label>
+                                <input class="form-check-input chk-grado-aux" type="checkbox" value="${g}" id="${idSeguro}" ${checked}>
+                                <label class="form-check-label fw-bold ms-1" style="font-size:0.9rem;" for="${idSeguro}">${g}</label>
                              </div>`;
                 });
-                container.innerHTML = html || '<span class="text-muted small">No hay grados registrados en "Estudiantes".</span>';
-            } else {
-                container.innerHTML = '<span class="text-danger small">Error al cargar grados (Sin datos).</span>';
+                container.innerHTML = html;
+            } catch (err) {
+                console.error("Error en renderizarCheckboxesGrados:", err);
+                container.innerHTML = '<span class="text-danger small">Error crítico al cargar grados.</span>';
             }
         }
         
@@ -15500,13 +15712,26 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
         }
 
         function cancelarEdicion(hoja) {
-            if(!hoja) return; editandoID = null; let btn = document.getElementById(`btn-form-${hoja}`); if(btn && btn.classList.contains('btn-warning')) { btn.innerHTML = hoja === 'Incidencias' ? 'Registrar Incidencia' : 'Guardar'; btn.classList.replace('btn-warning', hoja === 'Incidencias' ? 'btn-danger' : 'btn-primary'); }
+            if(!hoja) return; editandoID = null; 
+            let btn = document.getElementById(`btn-form-${hoja}`); 
+            if(btn && btn.classList.contains('btn-warning')) { 
+                btn.innerHTML = hoja === 'Incidencias' ? 'Registrar Incidencia' : 'Guardar'; 
+                btn.classList.replace('btn-warning', hoja === 'Incidencias' ? 'btn-danger' : 'btn-primary'); 
+            }
+            
             let prefix = hoja.substring(0,3).toLowerCase();
             if(hoja === 'Asistencia_Auxiliar') prefix = 'aax';
             if(hoja === 'Asistencia_Docentes') prefix = 'adc';
-            if(hoja === 'Horario_Docentes') prefix = 'hdc'; if(hoja === 'Incidencias') prefix = 'inc';
+            if(hoja === 'Horario_Docentes') prefix = 'hdc'; 
+            if(hoja === 'Incidencias') prefix = 'inc';
             
-            for(let i=0; i<10; i++){ 
+            // Caso especial Auxiliares
+            if(hoja === 'Auxiliares') {
+                let container = document.getElementById('aux-grados-container');
+                if(container) container.innerHTML = '';
+            }
+            
+            for(let i=0; i<15; i++){ 
                 let input = document.getElementById(`${prefix}-${i}`); 
                 if(input && !input.disabled) {
                     if(input.tagName === 'SELECT') {
@@ -15629,147 +15854,189 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
             return new Promise((resolve) => {
                 let cont = document.getElementById('qr-gen-box');
                 cont.innerHTML = '';
-                new QRCode(cont, { text: dni, width: 250, height: 250, correctLevel : QRCode.CorrectLevel.H });
-                
+                new QRCode(cont, { text: dni, width: 400, height: 400, correctLevel : QRCode.CorrectLevel.H });
+
                 setTimeout(() => {
                     let qrSource = cont.querySelector('canvas') || cont.querySelector('img');
                     let canvas = document.createElement('canvas');
-                    
-                    if (formato === 'vertical') { canvas.width = 340; canvas.height = 540; } 
-                    else { canvas.width = 540; canvas.height = 340; }
-                    
+
+                    // Alta Calidad (Full HD aproximado para impresión)
+                    if (formato === 'vertical') { canvas.width = 1000; canvas.height = 1580; } 
+                    else { canvas.width = 1580; canvas.height = 1000; }
+
                     let ctx = canvas.getContext('2d');
                     ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.strokeStyle = "#000000"; ctx.lineWidth = 6; ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
-                    
-                    ctx.fillStyle = "#dc3545"; ctx.fillRect(3, 3, canvas.width - 6, 60);
-                    ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; 
-                    ctx.font = "bold 24px sans-serif"; ctx.fillText("I.E. LA VICTORIA", canvas.width/2, 42);
-                    
-                    ctx.fillStyle = "#0d6efd"; ctx.fillRect(3, 63, canvas.width - 6, 30);
-                    ctx.fillStyle = "#ffc107"; ctx.font = "bold 16px sans-serif";
+                    ctx.strokeStyle = "#000000"; ctx.lineWidth = 10; ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+                    // --- ENCABEZADO ---
+                    ctx.fillStyle = "#dc3545"; ctx.fillRect(5, 5, canvas.width - 10, 150);
+
+                    if (formato === 'horizontal') {
+                        // Logo Izquierda
+                        let b64Logo = localStorage.getItem('logoInstBase64');
+                        if(b64Logo) {
+                            let imgH = new Image();
+                            imgH.onload = () => { let hSize = 130; ctx.drawImage(imgH, 30, 15, hSize, hSize); };
+                            imgH.src = b64Logo;
+                        }
+                        // Texto Centrado
+                        ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; 
+                        ctx.font = "bold 85px sans-serif"; ctx.fillText("I.E. LA VICTORIA", canvas.width/2, 105);
+                        // Círculo Grado/Sec Derecha
+                        if (grado !== 'Personal Docente') {
+                            let cX = canvas.width - 130, cY = 75, cR = 105;
+                            ctx.fillStyle = "#ffffff";
+                            ctx.beginPath(); ctx.arc(cX, cY, cR, 0, Math.PI * 2); ctx.fill();
+                            
+                            // Borde para mayor contraste
+                            ctx.strokeStyle = "#dc3545"; ctx.lineWidth = 4; ctx.stroke();
+
+                            ctx.fillStyle = "#dc3545"; ctx.textAlign = "center";
+                            let textoGradoSec = `${grado} ${seccion}`;
+                            ctx.font = "bold 72px sans-serif";
+                            ctx.fillText(textoGradoSec, cX, cY + 25);
+                        }
+                    } else {
+                        // VERTICAL ORIGINAL: Solo texto centrado
+                        ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; 
+                        ctx.font = "bold 70px sans-serif"; ctx.fillText("I.E. LA VICTORIA", canvas.width/2, 105);
+                    }
+
+                    // --- SUB-ENCABEZADO ---
+                    ctx.fillStyle = "#0d6efd"; ctx.fillRect(5, 155, canvas.width - 10, 80);
+                    ctx.fillStyle = "#ffc107"; ctx.textAlign = "center"; ctx.font = "bold 44px sans-serif";
                     let textoNivel = nivel ? nivel.toUpperCase() : "EDUCACIÓN SECUNDARIA";
                     if(ano) textoNivel += " - AÑO " + ano;
-                    ctx.fillText(textoNivel, canvas.width/2, 84);
+                    ctx.fillText(textoNivel, canvas.width/2, 210);
 
                     let drawRestAndResolve = () => {
-                        let partesNombre = nombres.split(' ');
-                        let linea1 = nombres, linea2 = "";
-                        
-                        if (formato === 'vertical') { linea1 = nombres; linea2 = ""; } 
-                        else {
+                        if (formato === 'horizontal') {
+                            let partesNombre = nombres.split(' ');
+                            let linea1 = nombres, linea2 = "";
                             if(partesNombre.length >= 2) {
                                 let mitad = Math.ceil(partesNombre.length / 2);
                                 linea1 = partesNombre.slice(0, mitad).join(' ');
                                 linea2 = partesNombre.slice(mitad).join(' ');
                             }
-                        }
 
-                        if (formato === 'horizontal') {
-                            if (qrSource) {
-                                ctx.fillStyle = "#fff"; ctx.fillRect(365, 115, 150, 150);
-                                ctx.drawImage(qrSource, 370, 120, 140, 140);
-                            }
-                            ctx.textAlign = "left"; ctx.fillStyle = "#333"; ctx.font = "bold 14px sans-serif";
-                            ctx.fillText(grado === 'Personal Docente' ? "DOCENTE:" : "ESTUDIANTE:", 145, 125);
+                            ctx.textAlign = "left"; ctx.fillStyle = "#333"; ctx.font = "bold 38px sans-serif";
+                            ctx.fillText(grado === 'Personal Docente' ? "DOCENTE:" : "ESTUDIANTE:", 450, 350);
                             
                             ctx.fillStyle = "#0d6efd";
-                            let fontSizeH = 22; ctx.font = `bold ${fontSizeH}px sans-serif`;
-                            while (fontSizeH > 10 && (ctx.measureText(linea1.toUpperCase()).width > 215 || (linea2 && ctx.measureText(linea2.toUpperCase()).width > 215))) {
+                            let fontSizeH = 68; ctx.font = `bold ${fontSizeH}px sans-serif`;
+                            while (fontSizeH > 20 && (ctx.measureText(linea1.toUpperCase()).width > 600 || (linea2 && ctx.measureText(linea2.toUpperCase()).width > 600))) {
                                 fontSizeH--; ctx.font = `bold ${fontSizeH}px sans-serif`;
                             }
-                            ctx.fillText(linea1.toUpperCase(), 145, 150);
-                            if(linea2) ctx.fillText(linea2.toUpperCase(), 145, 175);
+                            ctx.fillText(linea1.toUpperCase(), 450, 420);
+                            if(linea2) ctx.fillText(linea2.toUpperCase(), 450, 490);
 
-                            let basePosY = linea2 ? 220 : 195;
-                            
-                            // DNI
-                            ctx.fillStyle = "#333"; ctx.font = "bold 14px sans-serif";
-                            ctx.fillText("DNI:", 145, basePosY);
-                            ctx.fillStyle = "#000"; ctx.font = "bold 18px sans-serif";
-                            ctx.fillText(dni, 185, basePosY);
-                            
-                            // GRADO/SEC
-                            ctx.fillStyle = "#333"; ctx.font = "bold 14px sans-serif";
-                            ctx.fillText("GRADO/SEC:", 145, basePosY + 35);
-                            ctx.fillStyle = "#000"; ctx.font = "bold 18px sans-serif";
-                            if (grado !== 'Personal Docente') { 
-                                ctx.fillText(`${grado} "${seccion}"`, 145, basePosY + 60); 
-                            } else { 
-                                ctx.fillStyle = "#dc3545"; ctx.fillText(`PERSONAL DOCENTE`, 145, basePosY + 60); 
-                            }
-                        } else {
-                            ctx.textAlign = "center"; ctx.fillStyle = "#000000"; ctx.font = "bold 14px sans-serif";
-                            ctx.fillText(grado === 'Personal Docente' ? "DOCENTE:" : "ESTUDIANTE:", canvas.width/2, 260);
-                            ctx.fillStyle = "#0d6efd";
-                            let fontSizeV = 20; ctx.font = `bold ${fontSizeV}px sans-serif`;
-                            while (fontSizeV > 8 && ctx.measureText(linea1.toUpperCase()).width > canvas.width - 20) {
-                                fontSizeV--; ctx.font = `bold ${fontSizeV}px sans-serif`;
-                            }
-                            ctx.fillText(linea1.toUpperCase(), canvas.width/2, 285);
-
-                            let baseY = 315;
-                            ctx.fillStyle = "#000"; ctx.font = "bold 18px sans-serif";
-                            ctx.fillText("DNI: " + dni, canvas.width/2, baseY);
-                            if (grado !== 'Personal Docente') { ctx.fillText(`GRADO/SEC: ${grado} "${seccion}"`, canvas.width/2, baseY + 25); } 
-                            else { ctx.fillStyle = "#dc3545"; ctx.fillText(`PERSONAL DOCENTE`, canvas.width/2, baseY + 25); }
+                            let basePosY = linea2 ? 620 : 560;
+                            ctx.fillStyle = "#333"; ctx.font = "bold 54px sans-serif";
+                            ctx.fillText("DNI:", 450, basePosY);
+                            ctx.fillStyle = "#000"; ctx.font = "bold 85px sans-serif";
+                            ctx.fillText(dni, 580, basePosY);
 
                             if (qrSource) {
-                                let qrSize = 150; let qrY = baseY + 35;
-                                ctx.fillStyle = "#fff"; ctx.fillRect((canvas.width - qrSize)/2 - 5, qrY - 5, qrSize + 10, qrSize + 10);
+                                let qrSize = 450; 
+                                let qrX = Math.max(1100, 450 + Math.max(ctx.measureText(linea1.toUpperCase()).width, ctx.measureText(dni).width) + 50);
+                                if(qrX + qrSize > canvas.width - 20) qrX = canvas.width - qrSize - 20;
+                                ctx.fillStyle = "#fff"; ctx.fillRect(qrX - 10, 310, qrSize + 20, qrSize + 20);
+                                ctx.drawImage(qrSource, qrX, 320, qrSize, qrSize);
+                            }
+                            if (grado === 'Personal Docente') {
+                                ctx.fillStyle = "#dc3545"; ctx.font = "bold 44px sans-serif"; ctx.textAlign = "left";
+                                ctx.fillText(`PERSONAL DOCENTE`, 450, 820); 
+                            }
+                        } else {
+                            // VERTICAL ORIGINAL RESTAURADO
+                            ctx.textAlign = "center"; ctx.font = "bold 40px sans-serif";
+                            let txtEtiqueta = grado === 'Personal Docente' ? "DOCENTE:" : "ESTUDIANTE:";
+                            let txtWidth = ctx.measureText(txtEtiqueta).width;
+                            
+                            // Fondo blanco con transparencia Detrás de la etiqueta
+                            ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+                            ctx.fillRect(canvas.width/2 - (txtWidth/2 + 20), 725, txtWidth + 40, 50);
+                            
+                            ctx.fillStyle = "#000000";
+                            ctx.fillText(txtEtiqueta, canvas.width/2, 760);
+                            
+                            ctx.fillStyle = "#0d6efd";
+                            let fontSizeV = 55; ctx.font = `bold ${fontSizeV}px sans-serif`;
+                            while (fontSizeV > 18 && ctx.measureText(nombres.toUpperCase()).width > canvas.width - 100) {
+                                fontSizeV--; ctx.font = `bold ${fontSizeV}px sans-serif`;
+                            }
+                            ctx.fillText(nombres.toUpperCase(), canvas.width/2, 835);
+
+                            ctx.fillStyle = "#000"; ctx.font = "bold 50px sans-serif";
+                            ctx.fillText("DNI: " + dni, canvas.width/2, 920);
+                            
+                            if (grado !== 'Personal Docente') { 
+                                ctx.fillText(`GRADO/SEC: ${grado} "${seccion}"`, canvas.width/2, 995); 
+                            } else { 
+                                ctx.fillStyle = "#dc3545"; ctx.fillText(`PERSONAL DOCENTE`, canvas.width/2, 995); 
+                            }
+
+                            if (qrSource) {
+                                let qrSize = 440; let qrY = 1030;
+                                ctx.fillStyle = "#fff"; ctx.fillRect((canvas.width - qrSize)/2 - 10, qrY - 10, qrSize + 20, qrSize + 20);
                                 ctx.drawImage(qrSource, (canvas.width - qrSize)/2, qrY, qrSize, qrSize);
                             }
                         }
 
-                        ctx.fillStyle = "#dc3545"; ctx.fillRect(3, canvas.height - 33, canvas.width - 6, 30);
-                        ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "bold 13px sans-serif";
-                        ctx.fillText("CARNET INSTITUCIONAL", canvas.width/2, canvas.height - 13);
+                        // Pie de Carnet (Ambos)
+                        ctx.fillStyle = "#dc3545"; ctx.fillRect(5, canvas.height - 85, canvas.width - 10, 80);
+                        ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "bold 34px sans-serif";
+                        ctx.fillText("CARNET INSTITUCIONAL", canvas.width/2, canvas.height - 30);
                         resolve(canvas);
                     };
 
                     let processPhotoAndDraw = () => {
-                        let fotoX = formato === 'vertical' ? (canvas.width - 110)/2 : 20;
-                        let fotoY = formato === 'vertical' ? 100 : 110;
-                        ctx.strokeStyle = "#000"; ctx.lineWidth = 3; ctx.strokeRect(fotoX, fotoY, 110, 140);
+                        let fW = formato === 'horizontal' ? 420 : 380; 
+                        let fH = formato === 'horizontal' ? 540 : 480;
+                        let fotoX = formato === 'vertical' ? (canvas.width - fW)/2 : 15;
+                        let fotoY = formato === 'vertical' ? 290 : 260;
+                        ctx.strokeStyle = "#000"; ctx.lineWidth = 6; ctx.strokeRect(fotoX, fotoY, fW, fH);
                         
-                        if (fotoUrl && fotoUrl.trim() !== "") {
-                            ctx.fillStyle = "#f0f0f0"; ctx.fillRect(fotoX, fotoY, 110, 140);
-                            ctx.fillStyle = "#666"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
-                            ctx.fillText("CARGANDO...", fotoX + 55, fotoY + 75);
+                        let handleError = (msg) => {
+                            ctx.fillStyle = "#f0f0f0"; ctx.fillRect(fotoX, fotoY, fW, fH);
+                            ctx.fillStyle = "#dc3545"; ctx.font = "bold 28px sans-serif"; ctx.textAlign = "center";
+                            ctx.fillText(msg, fotoX + fW/2, fotoY + fH/2); drawRestAndResolve();
+                        };
 
-                            fetchAPI({ accion: 'obtenerBase64', url: fotoUrl }).then(rB64 => {
-                                if (rB64.exito && rB64.base64) {
-                                    let imgFoto = new Image();
-                                    imgFoto.onload = () => { ctx.drawImage(imgFoto, fotoX, fotoY, 110, 140); drawRestAndResolve(); };
-                                    imgFoto.onerror = () => {
-                                        ctx.fillStyle = "#f0f0f0"; ctx.fillRect(fotoX, fotoY, 110, 140);
-                                        ctx.fillStyle = "#dc3545"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
-                                        ctx.fillText("ERROR FOTO", fotoX + 55, fotoY + 75); drawRestAndResolve();
-                                    };
-                                    imgFoto.src = rB64.base64;
-                                } else {
-                                    ctx.fillStyle = "#f0f0f0"; ctx.fillRect(fotoX, fotoY, 110, 140);
-                                    ctx.fillStyle = "#dc3545"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
-                                    ctx.fillText("FOTO NO DISP.", fotoX + 55, fotoY + 75); drawRestAndResolve();
-                                }
-                            });
+                        if (fotoUrl && fotoUrl.trim() !== "") {
+                            let src = fotosCache[fotoUrl];
+                            if (src) {
+                                let imgFoto = new Image();
+                                imgFoto.onload = () => { ctx.drawImage(imgFoto, fotoX, fotoY, fW, fH); drawRestAndResolve(); };
+                                imgFoto.onerror = () => handleError("ERROR FOTO");
+                                imgFoto.src = src;
+                            } else {
+                                fetchAPI({ accion: 'obtenerBase64', url: fotoUrl }).then(rB64 => {
+                                    if (rB64.exito && rB64.base64) {
+                                        fotosCache[fotoUrl] = rB64.base64;
+                                        let imgFoto = new Image();
+                                        imgFoto.onload = () => { ctx.drawImage(imgFoto, fotoX, fotoY, fW, fH); drawRestAndResolve(); };
+                                        imgFoto.onerror = () => handleError("ERROR FOTO");
+                                        imgFoto.src = rB64.base64;
+                                    } else { handleError("ERROR RED"); }
+                                }).catch(() => handleError("ERROR API"));
+                            }
                         } else {
-                            ctx.fillStyle = "#f0f0f0"; ctx.fillRect(fotoX, fotoY, 110, 140);
-                            ctx.fillStyle = "#999"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center";
-                            ctx.fillText("FOTO", fotoX + 55, fotoY + 75); drawRestAndResolve();
+                            ctx.fillStyle = "#f0f0f0"; ctx.fillRect(fotoX, fotoY, fW, fH);
+                            ctx.fillStyle = "#999"; ctx.font = "bold 40px sans-serif"; ctx.textAlign = "center";
+                            ctx.fillText("SIN FOTO", fotoX + fW/2, fotoY + fH/2); drawRestAndResolve();
                         }
                     };
 
-                    // Insert Watermark Before Photo
+                    // Marca de Agua
                     let b64Logo = localStorage.getItem('logoInstBase64');
                     if(b64Logo) {
                         let imgWM = new Image();
                         imgWM.onload = () => {
-                            ctx.globalAlpha = 0.12; // Transparency
-                            let size = formato === 'vertical' ? 220 : 200;
+                            ctx.globalAlpha = formato === 'horizontal' ? 0.08 : 0.12; 
+                            let size = (formato === 'vertical') ? 600 : 850;
                             let wX = (canvas.width - size) / 2;
-                            let wY = formato === 'vertical' ? 180 : 100;
-                            if (formato === 'horizontal') { wX += 60; }
+                            let wY = (canvas.height - size) / 2 + (formato === 'vertical' ? 0 : 50);
                             ctx.drawImage(imgWM, wX, wY, size, size);
                             ctx.globalAlpha = 1.0;
                             processPhotoAndDraw();
@@ -15779,8 +16046,7 @@ async function descargarConsolidadoIncidenciasPDF(dni, fInicio, fFin) {
                     } else {
                         processPhotoAndDraw();
                     }
-
-                }, 500);
+                }, 200);
             });
         } let carnetActualParams = null;
         async function mostrarCarnetSolo(dni, nombres, grado, seccion, nivel, fotoUrl, ano = '') {
